@@ -27,6 +27,13 @@ public class JwtFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        String path = request.getRequestURI();
+        // Bỏ qua filter cho các endpoint công khai
+        if (path.contains("/auth")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String token = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (token == null || !token.startsWith("Bearer ")) {
             response.sendError(HttpStatus.UNAUTHORIZED.value(), "Missing or invalid Authorization header");

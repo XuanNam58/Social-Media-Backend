@@ -10,5 +10,5 @@ import lombok.experimental.FieldDefaults;
 @Setter
 @Builder
 public class UserLoginRes {
-    String email;
+    String token;
 }
