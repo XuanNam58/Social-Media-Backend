@@ -8,6 +8,7 @@ import com.example.social_media.dto.response.UserSignupRes;
 import com.example.social_media.entity.User;
 import com.example.social_media.repository.UserRepository;
 import com.example.social_media.service.AuthService;
+import com.google.cloud.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
@@ -18,7 +19,9 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.concurrent.ExecutionException;
 
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -39,6 +42,7 @@ public class AuthServiceImpl implements AuthService {
                 .fullName(userSignupReq.getFullName())
                 .username(userSignupReq.getUsername())
                 .email(userSignupReq.getEmail())
+                .createdAt(Timestamp.now())
                 .build(), uid);
 
         return UserSignupRes.builder()
@@ -56,7 +60,7 @@ public class AuthServiceImpl implements AuthService {
         FirebaseAuthenticationToken authentication = new FirebaseAuthenticationToken(Collections.emptyList(), decodedToken);
         SecurityContextHolder.getContext().setAuthentication(authentication);
         return UserLoginRes.builder()
-                .email(decodedToken.getEmail())
+                .token(idToken)
                 .build();
     }
 }

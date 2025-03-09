@@ -1,9 +1,12 @@
 package com.example.social_media.entity;
 
+import com.google.cloud.Timestamp;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -19,9 +22,9 @@ public class User {
     String fullName;
     String profilePicURL;
     String bio;
-    LocalDate createdAt;
-    Set<String> followers;
-    Set<String> following;
-    List<String> posts;
+    Timestamp createdAt;
+    Set<String> followers = new HashSet<>();
+    Set<String> following = new HashSet<>();
+    List<String> posts = new ArrayList<>();
 
 }
