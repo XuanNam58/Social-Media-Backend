@@ -1,7 +1,7 @@
-package com.example.social_media.repository;
+package com.social_media_friend.repository;
 
-import com.example.social_media.entity.User;
 import com.google.cloud.firestore.Firestore;
+import com.social_media_friend.entity.User;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -17,4 +17,6 @@ public class UserRepository {
     public void save(User user, String uid) throws ExecutionException, InterruptedException {
         firestore.collection("users").document(uid).set(user).get();
     }
+
+
 }

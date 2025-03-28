@@ -8,4 +8,5 @@ import java.util.concurrent.ExecutionException;
 public interface UserService {
     User getUserInfo(String token) throws FirebaseAuthException;
     boolean isUsernameExists(String username) throws ExecutionException, InterruptedException;
+    void save(User user, String uid) throws ExecutionException, InterruptedException;
 }

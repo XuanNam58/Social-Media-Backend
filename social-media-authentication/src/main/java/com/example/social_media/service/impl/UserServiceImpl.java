@@ -1,6 +1,7 @@
 package com.example.social_media.service.impl;
 
 import com.example.social_media.entity.User;
+import com.example.social_media.repository.UserRepository;
 import com.example.social_media.service.UserService;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.CollectionReference;
@@ -23,6 +24,7 @@ import java.util.concurrent.ExecutionException;
 @Service
 public class UserServiceImpl implements UserService {
     Firestore firestore;
+    UserRepository userRepository;
 
     @Override
     public User getUserInfo(String token) throws FirebaseAuthException {
@@ -43,5 +45,10 @@ public class UserServiceImpl implements UserService {
 //          tức là nó không trả về ngay lập tức mà cần thời gian để truy vấn dữ liệu từ Firestore.
 //         Do Spring Boot mặc định chạy đồng bộ, nên .get().get() được sử dụng để chờ kết quả trước khi tiếp tục xử lý.
         return !querySnapshot.isEmpty();
+    }
+
+    @Override
+    public void save(User user, String uid) throws ExecutionException, InterruptedException {
+        userRepository.save(user, uid);
     }
 }
