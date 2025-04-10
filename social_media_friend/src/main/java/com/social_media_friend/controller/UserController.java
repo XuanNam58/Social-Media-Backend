@@ -1,22 +1,14 @@
 package com.social_media_friend.controller;
 
 
-import com.google.api.core.ApiFuture;
-import com.google.cloud.firestore.DocumentSnapshot;
-import com.google.cloud.firestore.Firestore;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseAuthException;
-import com.google.firebase.auth.FirebaseToken;
 import com.social_media_friend.service.UserService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 @RestController
@@ -24,7 +16,22 @@ import java.util.concurrent.ExecutionException;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class UserController {
-    Firestore firestore;
     UserService userService;
+
+    @PostMapping("/follow")
+    public ResponseEntity<?> follow(@RequestHeader("Authorization") String token,
+                                    @RequestBody Map<String, String> request)
+            throws ExecutionException, InterruptedException {
+        userService.followUser(token, request.get("followId"), request.get("followedId"));
+        return ResponseEntity.ok().body("Update successfully");
+    }
+
+    @DeleteMapping("/unfollow")
+    public ResponseEntity<?> unfollow(@RequestHeader("Authorization") String token,
+                                      @RequestBody Map<String, String> request)
+            throws ExecutionException, InterruptedException {
+        userService.unFollowUser(token, request.get("followerId"), request.get("followedId"));
+        return ResponseEntity.ok().body("Update successfully");
+    }
 
 }

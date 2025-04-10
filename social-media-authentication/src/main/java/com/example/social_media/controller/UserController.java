@@ -15,6 +15,8 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 @RestController
@@ -57,4 +59,38 @@ public class UserController {
         return ResponseEntity.ok().body("Save successfully");
     }
 
+
+    @PutMapping("/update-follower/{uid}")
+    public ResponseEntity<?> updateUserFollower(@RequestBody User user, @PathVariable String uid) throws ExecutionException, InterruptedException {
+        userService.updateUserFollowers(uid, user.getFollowers().stream().toList());
+        return ResponseEntity.ok().body("Update successfully");
+    }
+
+    @PutMapping("/update-following/{uid}")
+    public ResponseEntity<?> updateUserFollowing(@RequestBody User user, @PathVariable String uid) throws ExecutionException, InterruptedException {
+        userService.updateUserFollowing(uid, user.getFollowing().stream().toList());
+        return ResponseEntity.ok().body("Update successfully");
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<?> searchUsers(@RequestParam("q") String query) {
+        try {
+            List<Map<String, Object>> results = userService.searchUsers(query);
+            return ResponseEntity.ok(results);
+        } catch (ExecutionException  | InterruptedException e){
+            return ResponseEntity.internalServerError().body("Error search users: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/get-user-by-username/{username}")
+    public ResponseEntity<?> getUserByUsername(@PathVariable String username) {
+        try {
+            Map<String, Object> user = userService.getUserByUsername(username);
+            if (user == null)
+                return ResponseEntity.notFound().build();
+            return ResponseEntity.ok(user);
+        } catch (ExecutionException  | InterruptedException e){
+            return ResponseEntity.internalServerError().body("Error getting user: " + e.getMessage());
+        }
+    }
 }
