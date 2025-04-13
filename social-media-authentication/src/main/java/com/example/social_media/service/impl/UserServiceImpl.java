@@ -1,5 +1,6 @@
 package com.example.social_media.service.impl;
 
+import com.example.social_media.dto.response.UserFollowRes;
 import com.example.social_media.entity.User;
 import com.example.social_media.repository.UserRepository;
 import com.example.social_media.service.UserService;
@@ -14,10 +15,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PreDestroy;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
+import java.util.Objects;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -26,7 +29,7 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService {
     Firestore firestore;
     UserRepository userRepository;
-
+    static final ExecutorService executor = Executors.newFixedThreadPool(10);
     @Override
     public User getUserInfo(String token) throws FirebaseAuthException {
 
@@ -92,4 +95,62 @@ public class UserServiceImpl implements UserService {
             return null;
         return documents.get(0).getData();
     }
+
+    @Override
+    public String getUidByUsername(String username) throws ExecutionException, InterruptedException {
+        QuerySnapshot querySnapshot = firestore.collection("users")
+                .whereEqualTo("username", username)
+                .limit(1)
+                .get()
+                .get();
+        if (!querySnapshot.isEmpty()) {
+            QueryDocumentSnapshot document = querySnapshot.getDocuments().get(0);
+            return document.getId();
+        }
+        return null;
+    }
+
+    @Override
+    public List<UserFollowRes> getUsersByIds(List<String> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+
+        List<CompletableFuture<UserFollowRes>> futures = ids.stream()
+                .map(id -> CompletableFuture.supplyAsync(() -> {
+                    try {
+                        DocumentSnapshot document = firestore.collection("users").document(id)
+                                .get()
+                                .get();
+                        if (!document.exists()) {
+                            return null;
+                        }
+                        return UserFollowRes.builder()
+                                .uid(id)
+                                .username(document.getString("username"))
+                                .fullName(document.getString("fullName"))
+                                .profilePicURL(document.getString("profilePicURL"))
+                                .build();
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        return null;
+                    } catch (ExecutionException e) {
+                        return null;
+                    }
+                }, executor))
+                .toList();
+
+        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+                .thenApply(v -> futures.stream()
+                        .map(CompletableFuture::join)
+                        .filter(Objects::nonNull)
+                        .toList())
+                .join();
+    }
+
+    @PreDestroy
+    public void shutdown() {
+        executor.shutdown();
+    }
+
 }

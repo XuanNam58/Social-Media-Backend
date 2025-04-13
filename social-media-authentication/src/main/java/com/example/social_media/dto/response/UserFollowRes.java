@@ -1,9 +1,7 @@
-package com.social_media_friend.entity;
+package com.example.social_media.dto.response;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-
-import java.time.Instant;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -11,8 +9,9 @@ import java.time.Instant;
 @Getter
 @Setter
 @Builder
-public class UserRelationship {
-    String followerId;
-    String followedId;
-    String createdAt;
+public class UserFollowRes {
+    String uid;
+    String username;
+    String fullName;
+    String profilePicURL;
 }
