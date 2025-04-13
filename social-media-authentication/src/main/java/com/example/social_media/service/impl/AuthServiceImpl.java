@@ -42,7 +42,7 @@ public class AuthServiceImpl implements AuthService {
                 .fullName(userSignupReq.getFullName())
                 .username(userSignupReq.getUsername())
                 .email(userSignupReq.getEmail())
-                .createdAt(Timestamp.now())
+                .createdAt(Timestamp.now().toString())
                 .build(), uid);
 
         return UserSignupRes.builder()

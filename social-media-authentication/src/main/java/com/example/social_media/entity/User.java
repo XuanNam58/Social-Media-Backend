@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
+import com.google.cloud.firestore.annotation.PropertyName;
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -22,7 +22,7 @@ public class User {
     String fullName;
     String profilePicURL;
     String bio;
-    Timestamp createdAt;
+    String createdAt;
     Set<String> followers = new HashSet<>();
     Set<String> following = new HashSet<>();
     List<String> posts = new ArrayList<>();

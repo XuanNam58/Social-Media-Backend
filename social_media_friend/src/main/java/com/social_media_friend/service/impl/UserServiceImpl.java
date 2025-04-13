@@ -1,6 +1,8 @@
 package com.social_media_friend.service.impl;
 
+import com.google.cloud.Timestamp;
 import com.google.cloud.firestore.Firestore;
+import com.social_media_friend.dto.request.UpdateFollowRequest;
 import com.social_media_friend.dto.response.UserResponse;
 import com.social_media_friend.entity.UserRelationship;
 import com.social_media_friend.repository.UserRepository;
@@ -14,7 +16,10 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.Instant;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor
@@ -44,15 +49,15 @@ public class UserServiceImpl implements UserService {
             followUser.getFollowers().add(followerId);
 
             // 4. Gọi API Auth Service
-            updateAuthServiceUser(token, reqUser, followerId, UPDATE_FOLLOWER);
-            updateAuthServiceUser(token, followUser, followedId, UPDATE_FOLLOWING);
+            updateAuthServiceUser(token, reqUser.getFollowing(), followerId, UPDATE_FOLLOWING);
+            updateAuthServiceUser(token, followUser.getFollowers(), followedId, UPDATE_FOLLOWER);
 
             // 5. Lưu vào Friend Service
             userRepository.saveUserRelationship(
                     UserRelationship.builder()
                             .followerId(followerId)
                             .followedId(followedId)
-                            .createdAt(Instant.now())
+                            .createdAt(Timestamp.now().toString())
                             .build()
             );
         } catch (RestClientException e) {
@@ -68,8 +73,8 @@ public class UserServiceImpl implements UserService {
             UserResponse followUser = getUserById(token, followedId);
 
             // 2. Kiểm tra trùng lặp
-            if (reqUser.getFollowing().contains(followedId)) {
-                throw new RuntimeException("Already following");
+            if (!reqUser.getFollowing().contains(followedId)) {
+                throw new RuntimeException("Not following");
             }
 
             // 3. Cập nhật danh sách
@@ -77,8 +82,8 @@ public class UserServiceImpl implements UserService {
             followUser.getFollowers().remove(followerId);
 
             // 4. Gọi API Auth Service
-            updateAuthServiceUser(token, reqUser, followerId, UPDATE_FOLLOWER);
-            updateAuthServiceUser(token, followUser, followedId, UPDATE_FOLLOWING);
+            updateAuthServiceUser(token, reqUser.getFollowing(), followerId, UPDATE_FOLLOWING);
+            updateAuthServiceUser(token, followUser.getFollowers(), followedId, UPDATE_FOLLOWER);
 
             // 5. Lưu vào Friend Service
             userRepository.deleteUserRelationship(
@@ -91,14 +96,18 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    private void updateAuthServiceUser(String token, UserResponse user, String userId, String updateType) {
+    private void updateAuthServiceUser(String token, Set<String> ids, String userId, String updateType) {
         HttpHeaders headers = createHeaders(token);
-        HttpEntity<UserResponse> request = new HttpEntity<>(user, headers);
+        UpdateFollowRequest request = UpdateFollowRequest.builder()
+                .ids(ids)
+                .build();
+
+        HttpEntity<UpdateFollowRequest> entity = new HttpEntity<>(request, headers);
 
         ResponseEntity<String> response = restTemplate.exchange(
                 AUTH_SERVICE_URL + updateType + userId,
                 HttpMethod.PUT,  // Changed from POST to PUT to match your endpoint
-                request,
+                entity,
                 String.class
         );
 
@@ -114,6 +123,11 @@ public class UserServiceImpl implements UserService {
         HttpEntity<String> entity = new HttpEntity<>(headers);
         ResponseEntity<UserResponse> response = restTemplate.exchange(AUTH_SERVICE_URL + userId, HttpMethod.GET, entity, UserResponse.class);
         return (UserResponse) response.getBody();
+    }
+
+    @Override
+    public List<String> getMutualFollows(List<String> followers, List<String> following) {
+        return followers.stream().filter(following::contains).collect(Collectors.toList());
     }
 
     private HttpHeaders createHeaders(String token) {

@@ -4,6 +4,7 @@ import com.google.cloud.Timestamp;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -21,7 +22,7 @@ public class UserResponse {
     String fullName;
     String profilePicURL;
     String bio;
-    Timestamp createdAt;
+    String createdAt;
     Set<String> followers = new HashSet<>();
     Set<String> following = new HashSet<>();
     List<String> posts = new ArrayList<>();

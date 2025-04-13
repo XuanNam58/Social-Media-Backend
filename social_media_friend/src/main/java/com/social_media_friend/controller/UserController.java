@@ -8,6 +8,7 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
@@ -22,7 +23,7 @@ public class UserController {
     public ResponseEntity<?> follow(@RequestHeader("Authorization") String token,
                                     @RequestBody Map<String, String> request)
             throws ExecutionException, InterruptedException {
-        userService.followUser(token, request.get("followId"), request.get("followedId"));
+        userService.followUser(token, request.get("followerId"), request.get("followedId"));
         return ResponseEntity.ok().body("Update successfully");
     }
 
@@ -32,6 +33,11 @@ public class UserController {
             throws ExecutionException, InterruptedException {
         userService.unFollowUser(token, request.get("followerId"), request.get("followedId"));
         return ResponseEntity.ok().body("Update successfully");
+    }
+
+    @GetMapping("/get-mutual-follows")
+    public ResponseEntity<List<String>> getMutualFollows(@RequestParam("followers") List<String> followers, @RequestParam("following") List<String> following) {
+        return ResponseEntity.ok(userService.getMutualFollows(followers, following));
     }
 
 }

@@ -1,9 +1,9 @@
-package com.social_media_friend.entity;
+package com.social_media_friend.dto.request;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.time.Instant;
+import java.util.Set;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -11,8 +11,6 @@ import java.time.Instant;
 @Getter
 @Setter
 @Builder
-public class UserRelationship {
-    String followerId;
-    String followedId;
-    String createdAt;
+public class UpdateFollowRequest {
+    Set<String> ids;
 }
