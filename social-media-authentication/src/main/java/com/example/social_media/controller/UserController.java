@@ -1,5 +1,6 @@
 package com.example.social_media.controller;
 
+import com.example.social_media.dto.information.UserDTO;
 import com.example.social_media.entity.User;
 import com.example.social_media.repository.UserRepository;
 import com.example.social_media.service.UserService;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 @RestController
@@ -93,4 +95,15 @@ public class UserController {
             return ResponseEntity.internalServerError().body("Error getting user: " + e.getMessage());
         }
     }
+
+    @PostMapping("/batch-by-username")
+    public ResponseEntity<?> getUsersByUsernames(@RequestBody Set<String> usernames) {
+        try {
+            List<UserDTO> users = userService.getUsersByUsernames(usernames);
+            return ResponseEntity.ok(users);
+        } catch (ExecutionException | InterruptedException e) {
+            return ResponseEntity.internalServerError().body("Error retrieving users: " + e.getMessage());
+        }
+    }
+
 }
