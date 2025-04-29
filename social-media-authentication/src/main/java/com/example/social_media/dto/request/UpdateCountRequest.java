@@ -8,10 +8,6 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Getter
 @Setter
-@Builder
-public class UserSignupReq {
-    String fullName;
-    String username;
-    String email;
-    String password;
+public class UpdateCountRequest {
+    String uid;
 }

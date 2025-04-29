@@ -1,7 +1,9 @@
-package com.example.social_media.dto.response;
+package com.social_media_friend.dto.request;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+
+import java.util.Set;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -9,6 +11,6 @@ import lombok.experimental.FieldDefaults;
 @Getter
 @Setter
 @Builder
-public class UserLoginRes {
-    String token;
+public class UpdateCountRequest {
+    String uid;
 }
