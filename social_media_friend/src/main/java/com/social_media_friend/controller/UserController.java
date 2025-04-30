@@ -1,7 +1,6 @@
 package com.social_media_friend.controller;
 
 
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.social_media_friend.dto.response.ApiResponse;
 import com.social_media_friend.service.UserService;
