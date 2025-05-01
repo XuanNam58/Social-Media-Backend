@@ -1,10 +1,11 @@
 package com.example.social_media.controller;
 
+import com.example.social_media.dto.request.UpdateFollowRequest;
+import com.example.social_media.dto.response.UserFollowRes;
 import com.example.social_media.dto.information.UserDTO;
 import com.example.social_media.entity.User;
-import com.example.social_media.repository.UserRepository;
 import com.example.social_media.service.UserService;
-import com.google.api.core.ApiFuture;
+import com.google.cloud.Timestamp;
 import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
 import com.google.firebase.auth.FirebaseAuth;
@@ -19,6 +20,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.time.Instant;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 @RestController
@@ -49,8 +52,37 @@ public class UserController {
     public ResponseEntity<?> getUserById(@PathVariable String userId) throws ExecutionException, InterruptedException {
         DocumentSnapshot document = firestore.collection("users").document(userId).get().get();
 
-        if (document.exists())
-            return ResponseEntity.ok(document.getData());
+        if (!document.exists()) {
+            return ResponseEntity.status(404).body("User not found in Firestore");
+        }
+
+        // Get the entire data map first
+        Map<String, Object> data = document.getData();
+
+        // Safely cast the lists
+        List<String> followersList = data.containsKey("followers") ?
+                (List<String>) data.get("followers") : new ArrayList<>();
+        List<String> followingList = data.containsKey("following") ?
+                (List<String>) data.get("following") : new ArrayList<>();
+
+        User respone = User.builder()
+                .username(document.getString("username"))
+                .email(document.getString("email"))
+                .fullName(document.getString("fullName"))
+                .profilePicURL(document.getString("profilePicURL"))
+                .bio(document.getString("bio"))
+                .followers(followersList != null ? new HashSet<>(followersList) : new HashSet<>())
+                .following(followingList != null ? new HashSet<>(followingList) : new HashSet<>())
+                .build();
+
+        Timestamp timestamp = document.getTimestamp("createdAt");
+        if (timestamp != null) {
+            respone.setCreatedAt(Instant.parse(timestamp.toString()).toString());
+        }
+        if (document.exists()) {
+            System.out.println(document.getData());
+            return ResponseEntity.ok(respone);
+        }
         else
             return ResponseEntity.status(404).body("User not found in Firestore");
     }
@@ -63,14 +95,14 @@ public class UserController {
 
 
     @PutMapping("/update-follower/{uid}")
-    public ResponseEntity<?> updateUserFollower(@RequestBody User user, @PathVariable String uid) throws ExecutionException, InterruptedException {
-        userService.updateUserFollowers(uid, user.getFollowers().stream().toList());
+    public ResponseEntity<?> updateUserFollower(@RequestBody UpdateFollowRequest request, @PathVariable String uid) throws ExecutionException, InterruptedException {
+        userService.updateUserFollowers(uid, new ArrayList<>(request.getIds()));
         return ResponseEntity.ok().body("Update successfully");
     }
 
     @PutMapping("/update-following/{uid}")
-    public ResponseEntity<?> updateUserFollowing(@RequestBody User user, @PathVariable String uid) throws ExecutionException, InterruptedException {
-        userService.updateUserFollowing(uid, user.getFollowing().stream().toList());
+    public ResponseEntity<?> updateUserFollowing(@RequestBody UpdateFollowRequest request, @PathVariable String uid) throws ExecutionException, InterruptedException {
+        userService.updateUserFollowing(uid, new ArrayList<>(request.getIds()));
         return ResponseEntity.ok().body("Update successfully");
     }
 
@@ -79,7 +111,7 @@ public class UserController {
         try {
             List<Map<String, Object>> results = userService.searchUsers(query);
             return ResponseEntity.ok(results);
-        } catch (ExecutionException  | InterruptedException e){
+        } catch (ExecutionException | InterruptedException e) {
             return ResponseEntity.internalServerError().body("Error search users: " + e.getMessage());
         }
     }
@@ -91,9 +123,58 @@ public class UserController {
             if (user == null)
                 return ResponseEntity.notFound().build();
             return ResponseEntity.ok(user);
-        } catch (ExecutionException  | InterruptedException e){
+        } catch (ExecutionException | InterruptedException e) {
             return ResponseEntity.internalServerError().body("Error getting user: " + e.getMessage());
         }
+    }
+
+    @GetMapping("/uid")
+    public ResponseEntity<String> getUidByUsername(@RequestParam String username) {
+        try {
+            String uid = userService.getUidByUsername(username);
+            return uid != null
+                    ? ResponseEntity.ok(uid)
+                    : ResponseEntity.notFound().build();
+        } catch (ExecutionException | InterruptedException e) {
+            return ResponseEntity.internalServerError().body("Firestore error");
+        }
+
+    }
+
+    @GetMapping("/follower-list")
+    public ResponseEntity<List<UserFollowRes>> getFollowers(@RequestParam String ids) {
+        if (ids == null || ids.trim().isEmpty()) {
+            return ResponseEntity.ok(List.of());
+        }
+        List<String> idList = Arrays.asList(ids.split(","));
+        if (idList.isEmpty()) {
+            return ResponseEntity.ok(List.of());
+        }
+        return ResponseEntity.ok(userService.getUsersByIds(idList));
+    }
+
+    @GetMapping("/following-list")
+    public ResponseEntity<List<UserFollowRes>> getFollowings(@RequestParam String ids) {
+        if (ids == null || ids.trim().isEmpty()) {
+            return ResponseEntity.ok(List.of());
+        }
+        List<String> idList = Arrays.asList(ids.split(","));
+        if (idList.isEmpty()) {
+            return ResponseEntity.ok(List.of());
+        }
+        return ResponseEntity.ok(userService.getUsersByIds(idList));
+    }
+
+    @GetMapping("/friend-list")
+    public ResponseEntity<List<UserFollowRes>> getFriends(@RequestParam String ids) {
+        if (ids == null || ids.trim().isEmpty()) {
+            return ResponseEntity.ok(List.of());
+        }
+        List<String> idList = Arrays.asList(ids.split(","));
+        if (idList.isEmpty()) {
+            return ResponseEntity.ok(List.of());
+        }
+        return ResponseEntity.ok(userService.getUsersByIds(idList));
     }
 
     @PostMapping("/batch-by-username")
