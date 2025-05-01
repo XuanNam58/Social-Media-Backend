@@ -1,14 +1,14 @@
 package com.example.social_media.service.impl;
 
 import com.example.social_media.config.FirebaseAuthenticationToken;
-import com.example.social_media.dto.request.UserLoginReq;
-import com.example.social_media.dto.request.UserSignupReq;
-import com.example.social_media.dto.response.UserLoginRes;
-import com.example.social_media.dto.response.UserSignupRes;
+import com.example.social_media.dto.request.UserSignupRequest;
+import com.example.social_media.dto.response.UserLoginResponse;
+import com.example.social_media.dto.response.UserSignupResponse;
 import com.example.social_media.entity.User;
 import com.example.social_media.repository.UserRepository;
 import com.example.social_media.service.AuthService;
 import com.google.cloud.Timestamp;
+import com.google.cloud.firestore.Firestore;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
@@ -19,9 +19,7 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.concurrent.ExecutionException;
 
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -29,23 +27,28 @@ import java.util.concurrent.ExecutionException;
 @Service
 public class AuthServiceImpl implements AuthService {
     UserRepository userRepository;
+    Firestore firestore;
 
     @Override
-    public UserSignupRes signUp(UserSignupReq userSignupReq) throws FirebaseAuthException, ExecutionException, InterruptedException {
+    public UserSignupResponse signUp(UserSignupRequest userSignupReq) throws FirebaseAuthException, ExecutionException, InterruptedException {
         UserRecord.CreateRequest createRequest = new UserRecord.CreateRequest()
                 .setEmail(userSignupReq.getEmail())
                 .setPassword(userSignupReq.getPassword());
         UserRecord userRecord = FirebaseAuth.getInstance().createUser(createRequest);
         String uid = userRecord.getUid();
 
-        userRepository.save(User.builder()
-                .fullName(userSignupReq.getFullName())
+        firestore.collection("users").document(uid).set(User.builder()
+                .uid(uid)
                 .username(userSignupReq.getUsername())
+                .fullName(userSignupReq.getFullName())
                 .email(userSignupReq.getEmail())
-                .createdAt(Timestamp.now().toString())
-                .build(), uid);
+                .createdAt(Timestamp.now())
+                .postNum(0L)
+                .followerNum(0L)
+                .followingNum(0L)
+        );
 
-        return UserSignupRes.builder()
+        return UserSignupResponse.builder()
                 .fullName(userSignupReq.getFullName())
                 .username(userSignupReq.getUsername())
                 .email(userSignupReq.getEmail())
@@ -53,13 +56,13 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public UserLoginRes login(String token) throws FirebaseAuthException {
+    public UserLoginResponse login(String token) throws FirebaseAuthException {
         String idToken = token.replace("Bearer ", "");
         FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(idToken);
 
         FirebaseAuthenticationToken authentication = new FirebaseAuthenticationToken(Collections.emptyList(), decodedToken);
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        return UserLoginRes.builder()
+        return UserLoginResponse.builder()
                 .token(idToken)
                 .build();
     }

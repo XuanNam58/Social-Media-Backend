@@ -9,8 +9,6 @@ import lombok.experimental.FieldDefaults;
 @Getter
 @Setter
 @Builder
-public class UserSignupRes {
-    String fullName;
-    String username;
-    String email;
+public class UserLoginResponse {
+    String token;
 }

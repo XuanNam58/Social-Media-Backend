@@ -1,4 +1,4 @@
-package com.example.social_media.dto.request;
+package com.example.social_media.dto.response;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -8,7 +8,9 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Getter
 @Setter
-public class UserLoginReq {
+@Builder
+public class UserSignupResponse {
+    String fullName;
+    String username;
     String email;
-    String password;
 }

@@ -1,9 +1,8 @@
 package com.social_media_friend.entity;
 
+import com.google.cloud.Timestamp;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-
-import java.time.Instant;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -12,7 +11,8 @@ import java.time.Instant;
 @Setter
 @Builder
 public class UserRelationship {
+    String id;
     String followerId;
     String followedId;
-    String createdAt;
+    Timestamp followAt;
 }

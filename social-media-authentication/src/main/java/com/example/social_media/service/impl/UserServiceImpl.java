@@ -34,12 +34,6 @@ public class UserServiceImpl implements UserService {
     UserRepository userRepository;
     static final ExecutorService executor = Executors.newFixedThreadPool(10);
     @Override
-    public User getUserInfo(String token) throws FirebaseAuthException {
-
-        return null;
-    }
-
-    @Override
     public boolean isUsernameExists(String username) throws ExecutionException, InterruptedException {
 //        firestore.collection("users") truy vấn đến collection có tên "users" trong Firestore.
         CollectionReference users = firestore.collection("users");
@@ -59,15 +53,6 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user, uid);
     }
 
-    @Override
-    public void updateUserFollowers(String uid, List<String> followers) throws ExecutionException, InterruptedException {
-        userRepository.updateUserFollowers(uid, followers);
-    }
-
-    @Override
-    public void updateUserFollowing(String uid, List<String> following) throws ExecutionException, InterruptedException {
-        userRepository.updateUserFollowing(uid, following);
-    }
 
     @Override
     public List<Map<String, Object>> searchUsers(String query) throws ExecutionException, InterruptedException {
@@ -149,6 +134,50 @@ public class UserServiceImpl implements UserService {
                         .filter(Objects::nonNull)
                         .toList())
                 .join();
+    }
+
+    @Override
+    public void incrementFollowerNum(String uid) throws ExecutionException, InterruptedException {
+        DocumentReference userRef = firestore.collection("users").document(uid);
+        firestore.runTransaction(transaction -> {
+            DocumentSnapshot snapshot = transaction.get(userRef).get();
+            Long followerNum = snapshot.getLong("followerNum") != null ? snapshot.getLong("followerNum") : 0L;
+            transaction.update(userRef, "followerNum", followerNum + 1);
+            return null;
+        }).get();
+    }
+
+    @Override
+    public void decrementFollowerNum(String uid) throws ExecutionException, InterruptedException {
+        DocumentReference userRef = firestore.collection("users").document(uid);
+        firestore.runTransaction(transaction -> {
+            DocumentSnapshot snapshot = transaction.get(userRef).get();
+            Long followerNum = snapshot.getLong("followerNum") != null ? snapshot.getLong("followerNum") : 0L;
+            transaction.update(userRef, "followerNum", Math.max(0L, followerNum - 1));
+            return null;
+        }).get();
+    }
+
+    @Override
+    public void incrementFollowingNum(String uid) throws ExecutionException, InterruptedException {
+        DocumentReference userRef = firestore.collection("users").document(uid);
+        firestore.runTransaction(transaction -> {
+            DocumentSnapshot snapshot = transaction.get(userRef).get();
+            Long followingNum = snapshot.getLong("followingNum") != null ? snapshot.getLong("followingNum") : 0L;
+            transaction.update(userRef, "followingNum", followingNum + 1);
+            return null;
+        }).get();
+    }
+
+    @Override
+    public void decrementFollowingNum(String uid) throws ExecutionException, InterruptedException {
+        DocumentReference userRef = firestore.collection("users").document(uid);
+        firestore.runTransaction(transaction -> {
+            DocumentSnapshot snapshot = transaction.get(userRef).get();
+            Long followingNum = snapshot.getLong("followingNum") != null ? snapshot.getLong("followingNum") : 0L;
+            transaction.update(userRef, "followingNum", Math.max(0L, followingNum - 1));
+            return null;
+        }).get();
     }
 
     @PreDestroy

@@ -1,0 +1,21 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: friend-service
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://securetoken.google.com/social-media-1c233
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+#logging:
+#  level:
+#    org.springframework: DEBUG
+#    com.netflix.discovery: DEBUG
