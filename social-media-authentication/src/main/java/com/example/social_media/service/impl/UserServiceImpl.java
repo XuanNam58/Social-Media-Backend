@@ -1,5 +1,6 @@
 package com.example.social_media.service.impl;
 
+import com.example.social_media.dto.information.UserDTO;
 import com.example.social_media.dto.response.UserFollowRes;
 import com.example.social_media.entity.User;
 import com.example.social_media.repository.UserRepository;
@@ -15,6 +16,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 
+import java.util.*;
+import java.util.concurrent.ExecutionException;
 import javax.annotation.PreDestroy;
 import java.util.List;
 import java.util.Locale;
@@ -180,6 +183,31 @@ public class UserServiceImpl implements UserService {
     @PreDestroy
     public void shutdown() {
         executor.shutdown();
+    }
+
+
+    @Override
+    public List<UserDTO> getUsersByUsernames(Set<String> usernames) throws ExecutionException, InterruptedException {
+        List<UserDTO> result = new ArrayList<>();
+
+        CollectionReference usersRef = firestore.collection("users");
+
+        for (String username : usernames) {
+            Query query = usersRef.whereEqualTo("username", username);
+            ApiFuture<QuerySnapshot> querySnapshot = query.get();
+            List<QueryDocumentSnapshot> documents = querySnapshot.get().getDocuments();
+
+            if (!documents.isEmpty()) {
+                DocumentSnapshot doc = documents.get(0);
+                UserDTO dto = new UserDTO();
+                dto.setUsername(username);
+                dto.setFullName((String) doc.get("fullName"));
+                dto.setProfilePicURL((String) doc.get("profilePicURL"));
+                result.add(dto);
+            }
+        }
+
+        return result;
     }
 
 }

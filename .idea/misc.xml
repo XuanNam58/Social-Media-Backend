@@ -5,6 +5,7 @@
     <option name="originalFiles">
       <list>
         <option value="$PROJECT_DIR$/social-media/pom.xml" />
+        <option value="$PROJECT_DIR$/social-media-authentication/pom.xml" />
       </list>
     </option>
   </component>
