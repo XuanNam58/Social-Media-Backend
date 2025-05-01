@@ -2,6 +2,7 @@ package com.example.social_media.controller;
 
 import com.example.social_media.dto.request.UpdateFollowRequest;
 import com.example.social_media.dto.response.UserFollowRes;
+import com.example.social_media.dto.information.UserDTO;
 import com.example.social_media.entity.User;
 import com.example.social_media.service.UserService;
 import com.google.cloud.Timestamp;
@@ -16,6 +17,9 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
@@ -172,4 +176,15 @@ public class UserController {
         }
         return ResponseEntity.ok(userService.getUsersByIds(idList));
     }
+
+    @PostMapping("/batch-by-username")
+    public ResponseEntity<?> getUsersByUsernames(@RequestBody Set<String> usernames) {
+        try {
+            List<UserDTO> users = userService.getUsersByUsernames(usernames);
+            return ResponseEntity.ok(users);
+        } catch (ExecutionException | InterruptedException e) {
+            return ResponseEntity.internalServerError().body("Error retrieving users: " + e.getMessage());
+        }
+    }
+
 }
