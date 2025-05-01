@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api/friend/users")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class UserController {

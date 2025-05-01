@@ -11,16 +11,16 @@ spring:
         - id: auth-service
           uri: lb://auth-service
           predicates:
-            - Path=/auth/**
+            - Path=/api/auth/**
 
         - id: friend-service
           uri: lb://friend-service
           predicates:
-            - Path=/friends/**
+            - Path=/api/friend/**
 
     discovery:
       locator:
-        enabled: true  # T? ??ng ??nh tuy?n theo tên service n?u mu?n
+        enabled: true  # T? ??ng ??nh tuy?n theo tï¿½n service n?u mu?n
 
 eureka:
   client:

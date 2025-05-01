@@ -61,6 +61,23 @@
 			<artifactId>firebase-admin</artifactId>
 			<version>9.3.0</version>
 		</dependency>
+
+		<!-- Dependency for gRPC -->
+		<dependency>
+			<groupId>io.grpc</groupId>
+			<artifactId>grpc-netty</artifactId>
+			<version>1.45.1</version> <!-- Chọn phiên bản phù hợp với bạn -->
+		</dependency>
+		<dependency>
+			<groupId>io.grpc</groupId>
+			<artifactId>grpc-protobuf</artifactId>
+			<version>1.45.1</version> <!-- Chọn phiên bản phù hợp với bạn -->
+		</dependency>
+		<dependency>
+			<groupId>io.grpc</groupId>
+			<artifactId>grpc-stub</artifactId>
+			<version>1.45.1</version> <!-- Chọn phiên bản phù hợp với bạn -->
+		</dependency>
 	</dependencies>
 	<dependencyManagement>
 		<dependencies>
