@@ -1,26 +1,25 @@
 package com.example.social_media.service.impl;
 
 import com.example.social_media.dto.information.UserDTO;
-import com.example.social_media.dto.response.UserFollowRes;
+import com.example.social_media.dto.request.UpdateFollowCountsRequest;
+import com.example.social_media.dto.response.UserFollowResponse;
 import com.example.social_media.entity.User;
 import com.example.social_media.repository.UserRepository;
 import com.example.social_media.service.UserService;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.*;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseAuthException;
-import com.google.firebase.auth.FirebaseToken;
-import com.google.firebase.auth.UserRecord;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import javax.annotation.PreDestroy;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.*;
@@ -32,7 +31,11 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService {
     Firestore firestore;
     UserRepository userRepository;
+    RedisTemplate<String, Long> redisTemplate;
+    KafkaTemplate<String, UpdateFollowCountsRequest> kafkaTemplate;
+//    MeterRegistry meterRegistry;
     static final ExecutorService executor = Executors.newFixedThreadPool(10);
+
     @Override
     public boolean isUsernameExists(String username) throws ExecutionException, InterruptedException {
 //        firestore.collection("users") truy vấn đến collection có tên "users" trong Firestore.
@@ -99,12 +102,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<UserFollowRes> getUsersByIds(List<String> ids) {
+    public List<UserFollowResponse> getUsersByIds(List<String> ids) {
         if (ids == null || ids.isEmpty()) {
             return List.of();
         }
 
-        List<CompletableFuture<UserFollowRes>> futures = ids.stream()
+        List<CompletableFuture<UserFollowResponse>> futures = ids.stream()
                 .map(id -> CompletableFuture.supplyAsync(() -> {
                     try {
                         DocumentSnapshot document = firestore.collection("users").document(id)
@@ -113,7 +116,7 @@ public class UserServiceImpl implements UserService {
                         if (!document.exists()) {
                             return null;
                         }
-                        return UserFollowRes.builder()
+                        return UserFollowResponse.builder()
                                 .uid(id)
                                 .username(document.getString("username"))
                                 .fullName(document.getString("fullName"))
@@ -137,45 +140,59 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void incrementFollowerNum(String uid) throws ExecutionException, InterruptedException {
-        DocumentReference userRef = firestore.collection("users").document(uid);
-        firestore.runTransaction(transaction -> {
-            DocumentSnapshot snapshot = transaction.get(userRef).get();
-            Long followerNum = snapshot.getLong("followerNum") != null ? snapshot.getLong("followerNum") : 0L;
-            transaction.update(userRef, "followerNum", followerNum + 1);
-            return null;
-        }).get();
+    public void updateFollowCounts(String followerId, String followedId, String operation) throws ExecutionException, InterruptedException {
+        String followingKey = "followingNum:" + followerId;
+        String followerKey = "followerNum:" + followedId;
+        long ttlHour = 24;
+
+        try {
+            Long followingNum = redisTemplate.opsForValue().get(followingKey);
+            Long followerNum = redisTemplate.opsForValue().get(followerKey);
+            // Ghi lại metrics cho followingKey
+//        meterRegistry.counter("redis.cache.hits", "key", followingKey).increment(followingNum != null ? 1 : 0);
+//        meterRegistry.counter("redis.cache.misses", "key", followingKey).increment(followingNum == null ? 1 : 0);
+//
+//        // Ghi lại metrics cho followerKey
+//        meterRegistry.counter("redis.cache.hits", "key", followerKey).increment(followerNum != null ? 1 : 0);
+//        meterRegistry.counter("redis.cache.misses", "key", followerKey).increment(followerNum == null ? 1 : 0);
+
+
+            if ("increment".equals(operation)) {
+                redisTemplate.opsForValue().increment(followingKey);
+                redisTemplate.opsForValue().increment(followerKey);
+            } else if ("decrement".equals(operation)) {
+                redisTemplate.opsForValue().set(followingKey, Math.max(0L, followingNum != null ? followingNum - 1 : 0));
+                redisTemplate.opsForValue().set(followerKey, Math.max(0L, followerNum != null ? followerNum - 1 : 0));
+            } else {
+                throw new IllegalArgumentException("Invalid operation: " + operation);
+            }
+
+            redisTemplate.expire(followingKey, ttlHour, TimeUnit.HOURS);
+            redisTemplate.expire(followerKey, ttlHour, TimeUnit.HOURS);
+
+            kafkaTemplate.send("follow-updates", new UpdateFollowCountsRequest(followerId, followedId, operation));
+        } catch (Exception e) {
+            updateFirestoreDirectly(followerId, followedId, operation);
+        }
+
     }
 
-    @Override
-    public void decrementFollowerNum(String uid) throws ExecutionException, InterruptedException {
-        DocumentReference userRef = firestore.collection("users").document(uid);
-        firestore.runTransaction(transaction -> {
-            DocumentSnapshot snapshot = transaction.get(userRef).get();
-            Long followerNum = snapshot.getLong("followerNum") != null ? snapshot.getLong("followerNum") : 0L;
-            transaction.update(userRef, "followerNum", Math.max(0L, followerNum - 1));
-            return null;
-        }).get();
-    }
+    private void updateFirestoreDirectly(String followerId, String followedId, String operation) throws ExecutionException, InterruptedException {
+        DocumentReference followerDoc = firestore.collection("users").document(followerId);
+        DocumentReference followedDoc = firestore.collection("users").document(followedId);
 
-    @Override
-    public void incrementFollowingNum(String uid) throws ExecutionException, InterruptedException {
-        DocumentReference userRef = firestore.collection("users").document(uid);
         firestore.runTransaction(transaction -> {
-            DocumentSnapshot snapshot = transaction.get(userRef).get();
-            Long followingNum = snapshot.getLong("followingNum") != null ? snapshot.getLong("followingNum") : 0L;
-            transaction.update(userRef, "followingNum", followingNum + 1);
-            return null;
-        }).get();
-    }
-
-    @Override
-    public void decrementFollowingNum(String uid) throws ExecutionException, InterruptedException {
-        DocumentReference userRef = firestore.collection("users").document(uid);
-        firestore.runTransaction(transaction -> {
-            DocumentSnapshot snapshot = transaction.get(userRef).get();
-            Long followingNum = snapshot.getLong("followingNum") != null ? snapshot.getLong("followingNum") : 0L;
-            transaction.update(userRef, "followingNum", Math.max(0L, followingNum - 1));
+            if ("increment".equals(operation)) {
+                transaction.update(followerDoc, "followingNum", FieldValue.increment(1));
+                transaction.update(followedDoc, "followerNum", FieldValue.increment(1));
+            } else if ("decrement".equals(operation)) {
+                DocumentSnapshot followerSnap = transaction.get(followerDoc).get();
+                DocumentSnapshot followedSnap = transaction.get(followedDoc).get();
+                Long followingNum = followerSnap.getLong("followingNum") != null ? followerSnap.getLong("followingNum") : 0L;
+                Long followerNum = followedSnap.getLong("followerNum") != null ? followedSnap.getLong("followerNum") : 0L;
+                transaction.update(followerDoc, "followingNum", Math.max(0L, followingNum - 1));
+                transaction.update(followedDoc, "followerNum", Math.max(0L, followerNum - 1));
+            }
             return null;
         }).get();
     }

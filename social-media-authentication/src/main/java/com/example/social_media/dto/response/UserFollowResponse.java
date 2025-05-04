@@ -9,7 +9,7 @@ import lombok.experimental.FieldDefaults;
 @Getter
 @Setter
 @Builder
-public class UserFollowRes {
+public class UserFollowResponse {
     String uid;
     String username;
     String fullName;

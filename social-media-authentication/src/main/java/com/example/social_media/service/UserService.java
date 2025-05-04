@@ -1,9 +1,8 @@
 package com.example.social_media.service;
 
 import com.example.social_media.dto.information.UserDTO;
-import com.example.social_media.dto.response.UserFollowRes;
+import com.example.social_media.dto.response.UserFollowResponse;
 import com.example.social_media.entity.User;
-import com.google.firebase.auth.FirebaseAuthException;
 
 import java.util.List;
 import java.util.Map;
@@ -19,10 +18,6 @@ public interface UserService {
     Map<String, Object> getUserByUsername(String username) throws ExecutionException, InterruptedException;
     List<UserDTO> getUsersByUsernames(Set<String> usernames) throws ExecutionException, InterruptedException;
     String getUidByUsername(String username) throws ExecutionException, InterruptedException;
-    List<UserFollowRes> getUsersByIds(List<String> ids);
-    void incrementFollowerNum(String uid) throws ExecutionException, InterruptedException;
-    void decrementFollowerNum(String uid) throws ExecutionException, InterruptedException;
-
-    void incrementFollowingNum(String uid) throws ExecutionException, InterruptedException;
-    void decrementFollowingNum(String uid) throws ExecutionException, InterruptedException;
+    List<UserFollowResponse> getUsersByIds(List<String> ids);
+    void updateFollowCounts(String followerId, String followedId, String operation) throws ExecutionException, InterruptedException;
 }
