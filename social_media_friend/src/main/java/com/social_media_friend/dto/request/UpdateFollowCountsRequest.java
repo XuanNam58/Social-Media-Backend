@@ -1,9 +1,7 @@
-package com.example.social_media.dto.request;
+package com.social_media_friend.dto.request;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-
-import java.util.Set;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -11,6 +9,8 @@ import java.util.Set;
 @Getter
 @Setter
 @Builder
-public class UpdateFollowRequest {
-    Set<String> ids;
+public class UpdateFollowCountsRequest {
+    String followerId;
+    String followedId;
+    String operation;
 }

@@ -22,12 +22,8 @@ public class UserController {
     UserService userService;
 
     @PostMapping("/follow")
-    public ResponseEntity<ApiResponse<Void>> follow(@RequestHeader("Authorization") String token,
-                                                    @RequestBody Map<String, String> request)
-            throws ExecutionException, InterruptedException {
-        userService.followUser(token, request.get("followerId"), request.get("followedId"));
-        System.out.println("followerId:" + request.get("followerId"));
-        System.out.println("followedId:" + request.get("followedId"));
+    public ResponseEntity<ApiResponse<Void>> follow(@RequestBody Map<String, String> request) {
+        userService.followUser(request.get("followerId"), request.get("followedId"));
         return ResponseEntity.ok().body(ApiResponse.<Void>builder()
                 .code(1000)
                 .message("Follow successfully")
@@ -35,10 +31,9 @@ public class UserController {
     }
 
     @DeleteMapping("/unfollow")
-    public ResponseEntity<ApiResponse<Void>> unfollow(@RequestHeader("Authorization") String token,
-                                                      @RequestBody Map<String, String> request)
-            throws ExecutionException, InterruptedException {
-        userService.unFollowUser(token, request.get("followerId"), request.get("followedId"));
+    public ResponseEntity<ApiResponse<Void>> unfollow(
+            @RequestBody Map<String, String> request) {
+        userService.unFollowUser(request.get("followerId"), request.get("followedId"));
         return ResponseEntity.ok().body(ApiResponse.<Void>builder()
                 .code(1000)
                 .message("Unfollow successfully")

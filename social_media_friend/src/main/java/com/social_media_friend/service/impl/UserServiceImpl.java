@@ -2,7 +2,7 @@ package com.social_media_friend.service.impl;
 
 import com.google.cloud.Timestamp;
 import com.google.cloud.firestore.*;
-import com.social_media_friend.dto.request.UpdateCountRequest;
+import com.social_media_friend.dto.request.UpdateFollowCountsRequest;
 import com.social_media_friend.dto.response.UserResponse;
 import com.social_media_friend.entity.UserRelationship;
 import com.social_media_friend.repository.UserRepository;
@@ -28,48 +28,50 @@ public class UserServiceImpl implements UserService {
     Firestore firestore;
     UserRepository userRepository;
     RestTemplate restTemplate;
-    static String AUTH_SERVICE_URL = "http://localhost:8080/api/users/";
-    static String INCREMENT_FOLLOWER = "incrementFollower";
-    static String DECREMENT_FOLLOWER = "decrementFollower";
-    static String INCREMENT_FOLLOWING = "incrementFollowing";
-    static String DECREMENT_FOLLOWING = "decrementFollowing";
+    static String AUTH_SERVICE_URL = "http://localhost:8080/api/auth/users/";
 
     @Override
-    public void followUser(String token, String followerId, String followedId) throws ExecutionException, InterruptedException {
+    public void followUser(String followerId, String followedId) {
         try {
             String relationshipId = followerId + "_" + followedId;
             DocumentReference relationshipRef = firestore.collection("relationships").document(relationshipId);
             UserRelationship relationship = UserRelationship.builder().id(relationshipId).followerId(followerId).followedId(followedId).followAt(Timestamp.now()).build();
-            relationshipRef.set(relationship).get();
+            relationshipRef.set(relationship);
+
+            updateAuthServiceUser(followerId, followedId, "increment");
         } catch (RestClientException e) {
             throw new RuntimeException("Failed to communicate with auth service", e);
         }
     }
 
     @Override
-    public void unFollowUser(String token, String followerId, String followedId) throws ExecutionException, InterruptedException {
+    public void unFollowUser(String followerId, String followedId) {
         try {
             String relationshipId = followerId + "_" + followedId;
-            firestore.collection("relationships").document(relationshipId).delete().get();
+            firestore.collection("relationships").document(relationshipId).delete();
 
-            updateAuthServiceUser(token, followerId, DECREMENT_FOLLOWING);
-            updateAuthServiceUser(token, followedId, DECREMENT_FOLLOWER);
+            updateAuthServiceUser(followerId, followedId, "decrement");
         } catch (RestClientException e) {
             throw new RuntimeException("Failed to communicate with auth service", e);
         }
     }
 
-    private void updateAuthServiceUser(String token, String uid, String updateType) {
-        HttpHeaders headers = createHeaders(token);
+    private void updateAuthServiceUser(String followerId, String followedId, String operation) {
 
-        HttpEntity<UpdateCountRequest> entity = new HttpEntity<>(new UpdateCountRequest(uid), headers);
+        HttpEntity<UpdateFollowCountsRequest> entity = new HttpEntity<>(UpdateFollowCountsRequest.builder()
+                .followerId(followerId)
+                .followedId(followedId)
+                .operation(operation)
+                .build());
 
-        System.out.println("uid"+uid);
-        ResponseEntity<String> response = restTemplate.exchange(AUTH_SERVICE_URL + updateType, HttpMethod.POST,  // Changed from POST to PUT to match your endpoint
-                entity, String.class);
+        ResponseEntity<String> response = restTemplate.exchange(
+                AUTH_SERVICE_URL + "update-follow-counts",
+                HttpMethod.POST,
+                entity,
+                String.class);
 
         if (!response.getStatusCode().is2xxSuccessful()) {
-            throw new RuntimeException("Failed to update user in auth service");
+            throw new RuntimeException("Failed to update follow counts in auth service");
         }
     }
 
