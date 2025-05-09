@@ -8,7 +8,6 @@ import com.example.social_media.repository.UserRepository;
 import com.example.social_media.service.UserService;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.*;
-import io.micrometer.core.instrument.MeterRegistry;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -16,12 +15,8 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
-import java.util.concurrent.ExecutionException;
 import javax.annotation.PreDestroy;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
@@ -33,6 +28,7 @@ public class UserServiceImpl implements UserService {
     UserRepository userRepository;
     RedisTemplate<String, Long> redisTemplate;
     KafkaTemplate<String, UpdateFollowCountsRequest> kafkaTemplate;
+
 //    MeterRegistry meterRegistry;
     static final ExecutorService executor = Executors.newFixedThreadPool(10);
 
