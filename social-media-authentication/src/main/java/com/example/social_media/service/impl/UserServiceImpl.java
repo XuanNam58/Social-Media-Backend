@@ -29,7 +29,7 @@ public class UserServiceImpl implements UserService {
     RedisTemplate<String, Long> redisTemplate;
     KafkaTemplate<String, UpdateFollowCountsRequest> kafkaTemplate;
 
-//    MeterRegistry meterRegistry;
+    //    MeterRegistry meterRegistry;
     static final ExecutorService executor = Executors.newFixedThreadPool(10);
 
     @Override
@@ -52,26 +52,6 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user, uid);
     }
 
-
-    @Override
-    public List<Map<String, Object>> searchUsers(String query) throws ExecutionException, InterruptedException {
-        String lowcaseQuery = query.toLowerCase();
-
-        ApiFuture<QuerySnapshot> future = firestore.collection("users").get();
-        List<QueryDocumentSnapshot> documents = future.get().getDocuments();
-
-        return documents
-                .stream()
-                .map(doc -> doc.getData())
-                .filter(userData -> {
-                    String username = (String) userData.get("username");
-                    String fullName = (String) userData.get("fullName");
-                    return (username != null && username.toLowerCase().contains(lowcaseQuery)) ||
-                            (fullName != null && fullName.toLowerCase().contains(lowcaseQuery));
-                })
-                .limit(10)
-                .collect(Collectors.toList());
-    }
 
     @Override
     public Map<String, Object> getUserByUsername(String username) throws ExecutionException, InterruptedException {
@@ -103,12 +83,61 @@ public class UserServiceImpl implements UserService {
             return List.of();
         }
 
-        List<CompletableFuture<UserFollowResponse>> futures = ids.stream()
-                .map(id -> CompletableFuture.supplyAsync(() -> {
+        List<UserFollowResponse> results = new ArrayList<>();
+        List<String> missingIds = new ArrayList<>();
+
+        try {
+            for (String id : ids) {
+                Map<Object, Object> userData = redisTemplate.opsForHash().entries("user:" + id);
+                if (!userData.isEmpty()) {
+                    results.add(UserFollowResponse.builder()
+                            .uid(id)
+                            .username((String) userData.get("username"))
+                            .fullName((String) userData.get("fullName"))
+                            .profilePicURL((String) userData.get("profilePicURL"))
+                            .build());
+                } else {
+                    missingIds.add(id);
+                }
+            }
+
+            if (!missingIds.isEmpty()) {
+                List<DocumentReference> refs = missingIds.stream()
+                        .map(id -> firestore.collection("users").document(id))
+                        .collect(Collectors.toList());
+                ApiFuture<List<DocumentSnapshot>> future = firestore.getAll(refs.toArray(new DocumentReference[0]));
+                List<DocumentSnapshot> documents = future.get();
+                for (DocumentSnapshot doc : documents) {
+                    if (doc.exists()) {
+                        UserFollowResponse response = UserFollowResponse.builder()
+                                .uid(doc.getId())
+                                .username(doc.getString("username"))
+                                .fullName(doc.getString("fullName"))
+                                .profilePicURL(doc.getString("profilePicURL"))
+                                .build();
+                        results.add(response);
+                        Map<String, String> userData = new HashMap<>();
+                        userData.put("username", response.getUsername());
+                        userData.put("fullName", response.getFullName());
+                        userData.put("profilePicURL", response.getProfilePicURL());
+                        redisTemplate.opsForHash().putAll("user:" + doc.getId(), userData);
+                        redisTemplate.expire("user:" + doc.getId(), 15, TimeUnit.MINUTES);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            return getUsersByIdsFallback(ids);
+        }
+
+        return results;
+    }
+
+    private List<UserFollowResponse> getUsersByIdsFallback(List<String> ids) {
+        // Logic hiện tại của getUsersByIds
+        return ids.stream()
+                .map(id -> {
                     try {
-                        DocumentSnapshot document = firestore.collection("users").document(id)
-                                .get()
-                                .get();
+                        DocumentSnapshot document = firestore.collection("users").document(id).get().get();
                         if (!document.exists()) {
                             return null;
                         }
@@ -118,21 +147,12 @@ public class UserServiceImpl implements UserService {
                                 .fullName(document.getString("fullName"))
                                 .profilePicURL(document.getString("profilePicURL"))
                                 .build();
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                        return null;
-                    } catch (ExecutionException e) {
+                    } catch (Exception e) {
                         return null;
                     }
-                }, executor))
-                .toList();
-
-        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
-                .thenApply(v -> futures.stream()
-                        .map(CompletableFuture::join)
-                        .filter(Objects::nonNull)
-                        .toList())
-                .join();
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 
     @Override

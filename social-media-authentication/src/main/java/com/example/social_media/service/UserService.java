@@ -14,7 +14,6 @@ public interface UserService {
     boolean isUsernameExists(String username) throws ExecutionException, InterruptedException;
     void save(User user, String uid) throws ExecutionException, InterruptedException;
 
-    List<Map<String, Object>> searchUsers(String query) throws ExecutionException, InterruptedException;
     Map<String, Object> getUserByUsername(String username) throws ExecutionException, InterruptedException;
     List<UserDTO> getUsersByUsernames(Set<String> usernames) throws ExecutionException, InterruptedException;
     String getUidByUsername(String username) throws ExecutionException, InterruptedException;

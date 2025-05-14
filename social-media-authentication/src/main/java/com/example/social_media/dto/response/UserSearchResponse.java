@@ -1,10 +1,17 @@
-package com.example.social_media.dto.information;
+package com.example.social_media.dto.response;
 
-import lombok.Data;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 
-@Data
-public class UserDTO {
-    private String username;
-    private String fullName;
-    private String profilePicURL;
+@AllArgsConstructor
+@NoArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
+@Getter
+@Setter
+@Builder
+public class UserSearchResponse {
+    String uid;
+    String username;
+    String fullName;
+    String profilePicURL;
 }
