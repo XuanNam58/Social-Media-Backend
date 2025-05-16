@@ -5,6 +5,7 @@ import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
+import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -14,10 +15,18 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 @Component
-public class AuthenticationFilter implements GatewayFilter, Ordered {
+public class AuthenticationFilter implements GlobalFilter, Ordered {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+//        chain: Là GatewayFilterChain – đại diện cho chuỗi các filter được áp dụng cho request đó.
+//
+//        exchange: Là ServerWebExchange – đại diện cho toàn bộ thông tin request và response hiện tại.
         ServerHttpRequest request = exchange.getRequest();
+
+        String path = request.getURI().getPath();
+        if (path.contains("signup") || path.contains("/login") || path.contains("check-username")) {
+            return chain.filter(exchange); // chuyển request đi qua các filter tiếp theo
+        }
 
         String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
 

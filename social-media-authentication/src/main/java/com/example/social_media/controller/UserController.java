@@ -130,42 +130,6 @@ public class UserController {
                 .build());
     }
 
-//    @GetMapping("/following-list")
-//    public ResponseEntity<ApiResponse<List<UserFollowResponse>>> getFollowings(@RequestParam String ids) {
-//        if (ids == null || ids.trim().isEmpty()) {
-//            return ResponseEntity.ok(ApiResponse.<List<UserFollowResponse>>builder()
-//                    .code(1000)
-//                    .message("No followings retrieved")
-//                    .result(List.of())
-//                    .build());
-//        }
-//        List<String> idList = Arrays.asList(ids.split(","));
-//        List<UserFollowResponse> followings = userService.getUsersByIds(idList);
-//        return ResponseEntity.ok(ApiResponse.<List<UserFollowResponse>>builder()
-//                .code(1000)
-//                .message("Followings retrieved successfully")
-//                .result(followings)
-//                .build());
-//    }
-//
-//    @GetMapping("/friend-list")
-//    public ResponseEntity<ApiResponse<List<UserFollowResponse>>> getFriends(@RequestParam String ids) {
-//        if (ids == null || ids.trim().isEmpty()) {
-//            return ResponseEntity.ok(ApiResponse.<List<UserFollowResponse>>builder()
-//                    .code(1000)
-//                    .message("No friends retrieved")
-//                    .result(List.of())
-//                    .build());
-//        }
-//        List<String> idList = Arrays.asList(ids.split(","));
-//        List<UserFollowResponse> friends = userService.getUsersByIds(idList);
-//        return ResponseEntity.ok(ApiResponse.<List<UserFollowResponse>>builder()
-//                .code(1000)
-//                .message("Friends retrieved successfully")
-//                .result(friends)
-//                .build());
-//    }
-
     @PostMapping("/user-list")
     public ResponseEntity<List<UserFollowResponse>> getUsersByIds(@RequestBody List<String> ids) {
         List<UserFollowResponse> users = userService.getUsersByIds(ids);
