@@ -1,8 +1,8 @@
 package com.example.social_media.controller;
 
-import com.example.social_media.dto.request.UpdateCountRequest;
+import com.example.social_media.dto.request.UpdateFollowCountsRequest;
 import com.example.social_media.dto.response.ApiResponse;
-import com.example.social_media.dto.response.UserFollowRes;
+import com.example.social_media.dto.response.UserFollowResponse;
 import com.example.social_media.dto.information.UserDTO;
 import com.example.social_media.entity.User;
 import com.example.social_media.service.UserService;
@@ -21,11 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.time.Instant;
-import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 @RestController
@@ -82,16 +78,6 @@ public class UserController {
         return ResponseEntity.ok().body("Save successfully");
     }
 
-    @GetMapping("/search")
-    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> searchUsers(@RequestParam("q") String query) throws ExecutionException, InterruptedException {
-        List<Map<String, Object>> results = userService.searchUsers(query);
-        return ResponseEntity.ok(ApiResponse.<List<Map<String, Object>>>builder()
-                .code(1000)
-                .message("Users retrieved successfully")
-                .result(results)
-                .build());
-    }
-
     @GetMapping("/get-user-by-username/{username}")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getUserByUsername(@PathVariable String username) throws ExecutionException, InterruptedException {
         Map<String, Object> user = userService.getUserByUsername(username);
@@ -127,92 +113,35 @@ public class UserController {
     }
 
     @GetMapping("/follower-list")
-    public ResponseEntity<ApiResponse<List<UserFollowRes>>> getFollowers(@RequestParam String ids) {
+    public ResponseEntity<ApiResponse<List<UserFollowResponse>>> getFollowers(@RequestParam String ids) {
         if (ids == null || ids.trim().isEmpty()) {
-            return ResponseEntity.ok(ApiResponse.<List<UserFollowRes>>builder()
+            return ResponseEntity.ok(ApiResponse.<List<UserFollowResponse>>builder()
                     .code(1000)
                     .message("No followers retrieved")
                     .result(List.of())
                     .build());
         }
         List<String> idList = Arrays.asList(ids.split(","));
-        List<UserFollowRes> followers = userService.getUsersByIds(idList);
-        return ResponseEntity.ok(ApiResponse.<List<UserFollowRes>>builder()
+        List<UserFollowResponse> followers = userService.getUsersByIds(idList);
+        return ResponseEntity.ok(ApiResponse.<List<UserFollowResponse>>builder()
                 .code(1000)
                 .message("Followers retrieved successfully")
                 .result(followers)
                 .build());
     }
 
-    @GetMapping("/following-list")
-    public ResponseEntity<ApiResponse<List<UserFollowRes>>> getFollowings(@RequestParam String ids) {
-        if (ids == null || ids.trim().isEmpty()) {
-            return ResponseEntity.ok(ApiResponse.<List<UserFollowRes>>builder()
-                    .code(1000)
-                    .message("No followings retrieved")
-                    .result(List.of())
-                    .build());
-        }
-        List<String> idList = Arrays.asList(ids.split(","));
-        List<UserFollowRes> followings = userService.getUsersByIds(idList);
-        return ResponseEntity.ok(ApiResponse.<List<UserFollowRes>>builder()
-                .code(1000)
-                .message("Followings retrieved successfully")
-                .result(followings)
-                .build());
+    @PostMapping("/user-list")
+    public ResponseEntity<List<UserFollowResponse>> getUsersByIds(@RequestBody List<String> ids) {
+        List<UserFollowResponse> users = userService.getUsersByIds(ids);
+        return ResponseEntity.ok(users);
     }
 
-    @GetMapping("/friend-list")
-    public ResponseEntity<ApiResponse<List<UserFollowRes>>> getFriends(@RequestParam String ids) {
-        if (ids == null || ids.trim().isEmpty()) {
-            return ResponseEntity.ok(ApiResponse.<List<UserFollowRes>>builder()
-                    .code(1000)
-                    .message("No friends retrieved")
-                    .result(List.of())
-                    .build());
-        }
-        List<String> idList = Arrays.asList(ids.split(","));
-        List<UserFollowRes> friends = userService.getUsersByIds(idList);
-        return ResponseEntity.ok(ApiResponse.<List<UserFollowRes>>builder()
-                .code(1000)
-                .message("Friends retrieved successfully")
-                .result(friends)
-                .build());
-    }
-
-    @PostMapping("/incrementFollower")
-    public ResponseEntity<ApiResponse<Void>> incrementFollower(@RequestBody UpdateCountRequest request) throws ExecutionException, InterruptedException {
-        userService.incrementFollowerNum(request.getUid());
+    @PostMapping("/update-follow-counts")
+    public ResponseEntity<ApiResponse<Void>> incrementFollower(@RequestBody UpdateFollowCountsRequest request) throws ExecutionException, InterruptedException {
+        userService.updateFollowCounts(request.getFollowerId(), request.getFollowedId(), request.getOperation());
         return ResponseEntity.ok(ApiResponse.<Void>builder()
                 .code(1000)
-                .message("Follower count incremented")
-                .build());
-    }
-
-    @PostMapping("/decrementFollower")
-    public ResponseEntity<ApiResponse<Void>> decrementFollower(@RequestBody UpdateCountRequest request) throws ExecutionException, InterruptedException {
-        userService.decrementFollowerNum(request.getUid());
-        return ResponseEntity.ok(ApiResponse.<Void>builder()
-                .code(1000)
-                .message("Follower count decremented")
-                .build());
-    }
-
-    @PostMapping("/incrementFollowing")
-    public ResponseEntity<ApiResponse<Void>> incrementFollowing(@RequestBody UpdateCountRequest request) throws ExecutionException, InterruptedException {
-        userService.incrementFollowingNum(request.getUid());
-        return ResponseEntity.ok(ApiResponse.<Void>builder()
-                .code(1000)
-                .message("Following count incremented")
-                .build());
-    }
-
-    @PostMapping("/decrementFollowing")
-    public ResponseEntity<ApiResponse<Void>> decrementFollowing(@RequestBody UpdateCountRequest request) throws ExecutionException, InterruptedException {
-        userService.decrementFollowingNum(request.getUid());
-        return ResponseEntity.ok(ApiResponse.<Void>builder()
-                .code(1000)
-                .message("Following count decremented")
+                .message("Follow counts updated")
                 .build());
     }
 

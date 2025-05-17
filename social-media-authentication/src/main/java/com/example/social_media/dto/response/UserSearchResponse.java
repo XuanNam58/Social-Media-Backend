@@ -1,9 +1,7 @@
-package com.example.social_media.dto.request;
+package com.example.social_media.dto.response;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-
-import java.util.Set;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -11,6 +9,9 @@ import java.util.Set;
 @Getter
 @Setter
 @Builder
-public class UpdateFollowRequest {
-    Set<String> ids;
+public class UserSearchResponse {
+    String uid;
+    String username;
+    String fullName;
+    String profilePicURL;
 }
