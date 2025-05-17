@@ -1,0 +1,33 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: friend-service
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      # password: your-redis-password # Bỏ nếu không dùng mật khẩu
+      timeout: 2000
+      lettuce:
+        pool:
+          max-active: 20
+          max-idle: 10
+          min-idle: 5
+          max-wait: 1000
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://securetoken.google.com/social-media-1c233
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+#logging:
+#  level:
+#    org.springframework: DEBUG
+#    com.netflix.discovery: DEBUG

@@ -1,4 +1,4 @@
-package com.example.social_media.dto.request;
+package com.social_media_friend.dto.request;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -9,9 +9,8 @@ import lombok.experimental.FieldDefaults;
 @Getter
 @Setter
 @Builder
-public class UserSignupReq {
-    String fullName;
-    String username;
-    String email;
-    String password;
+public class UpdateFollowCountsRequest {
+    String followerId;
+    String followedId;
+    String operation;
 }
