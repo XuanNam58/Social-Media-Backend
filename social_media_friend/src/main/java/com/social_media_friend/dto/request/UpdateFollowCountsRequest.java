@@ -1,4 +1,4 @@
-package com.example.social_media.dto.response;
+package com.social_media_friend.dto.request;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -9,9 +9,8 @@ import lombok.experimental.FieldDefaults;
 @Getter
 @Setter
 @Builder
-public class UserFollowRes {
-    String uid;
-    String username;
-    String fullName;
-    String profilePicURL;
+public class UpdateFollowCountsRequest {
+    String followerId;
+    String followedId;
+    String operation;
 }

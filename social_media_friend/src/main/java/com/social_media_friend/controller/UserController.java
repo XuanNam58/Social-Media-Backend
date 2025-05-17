@@ -3,6 +3,7 @@ package com.social_media_friend.controller;
 
 import com.google.firebase.auth.FirebaseAuthException;
 import com.social_media_friend.dto.response.ApiResponse;
+import com.social_media_friend.dto.response.UserFollowResponse;
 import com.social_media_friend.service.UserService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -22,12 +23,8 @@ public class UserController {
     UserService userService;
 
     @PostMapping("/follow")
-    public ResponseEntity<ApiResponse<Void>> follow(@RequestHeader("Authorization") String token,
-                                                    @RequestBody Map<String, String> request)
-            throws ExecutionException, InterruptedException {
-        userService.followUser(token, request.get("followerId"), request.get("followedId"));
-        System.out.println("followerId:" + request.get("followerId"));
-        System.out.println("followedId:" + request.get("followedId"));
+    public ResponseEntity<ApiResponse<Void>> follow(@RequestBody Map<String, String> request) {
+        userService.followUser(request.get("followerId"), request.get("followedId"));
         return ResponseEntity.ok().body(ApiResponse.<Void>builder()
                 .code(1000)
                 .message("Follow successfully")
@@ -35,10 +32,9 @@ public class UserController {
     }
 
     @DeleteMapping("/unfollow")
-    public ResponseEntity<ApiResponse<Void>> unfollow(@RequestHeader("Authorization") String token,
-                                                      @RequestBody Map<String, String> request)
-            throws ExecutionException, InterruptedException {
-        userService.unFollowUser(token, request.get("followerId"), request.get("followedId"));
+    public ResponseEntity<ApiResponse<Void>> unfollow(
+            @RequestBody Map<String, String> request) {
+        userService.unFollowUser(request.get("followerId"), request.get("followedId"));
         return ResponseEntity.ok().body(ApiResponse.<Void>builder()
                 .code(1000)
                 .message("Unfollow successfully")
@@ -46,32 +42,32 @@ public class UserController {
     }
 
     @GetMapping("/followers/{followedId}")
-    public ResponseEntity<ApiResponse<List<String>>> getFollowers(@PathVariable String followedId, @RequestParam int page, @RequestParam int size) throws ExecutionException, InterruptedException {
-        List<String> followerIds = userService.getFollowers(followedId, page, size);
-        return ResponseEntity.ok(ApiResponse.<List<String>>builder()
+    public ResponseEntity<ApiResponse<List<UserFollowResponse>>> getFollowers(@PathVariable String followedId, @RequestParam int page, @RequestParam int size) throws ExecutionException, InterruptedException {
+        List<UserFollowResponse> followers = userService.getFollowers(followedId, page, size);
+        return ResponseEntity.ok(ApiResponse.<List<UserFollowResponse>>builder()
                 .code(1000)
                 .message("Followers retrieved successfully")
-                .result(followerIds)
+                .result(followers)
                 .build());
     }
 
     @GetMapping("/following/{followerId}")
-    public ResponseEntity<ApiResponse<List<String>>> getFollowing(@PathVariable String followerId, @RequestParam int page, @RequestParam int size) throws ExecutionException, InterruptedException {
-        List<String> followedIds = userService.getFollowing(followerId, page, size);
-        return ResponseEntity.ok(ApiResponse.<List<String>>builder()
+    public ResponseEntity<ApiResponse<List<UserFollowResponse>>> getFollowing(@PathVariable String followerId, @RequestParam int page, @RequestParam int size) throws ExecutionException, InterruptedException {
+        List<UserFollowResponse> following = userService.getFollowing(followerId, page, size);
+        return ResponseEntity.ok(ApiResponse.<List<UserFollowResponse>>builder()
                 .code(1000)
                 .message("Following retrieved successfully")
-                .result(followedIds)
+                .result(following)
                 .build());
     }
 
     @GetMapping("/friends/{uid}")
-    public ResponseEntity<ApiResponse<List<String>>> getFriends(@PathVariable String uid, @RequestParam int page, @RequestParam int size, @RequestHeader("Authorization") String authHeader) throws ExecutionException, InterruptedException, FirebaseAuthException {
-        List<String> friendUids = userService.getFriends(uid, page, size);
-        return ResponseEntity.ok(ApiResponse.<List<String>>builder()
+    public ResponseEntity<ApiResponse<List<UserFollowResponse>>> getFriends(@PathVariable String uid, @RequestParam int page, @RequestParam int size, @RequestHeader("Authorization") String authHeader) throws ExecutionException, InterruptedException, FirebaseAuthException {
+        List<UserFollowResponse> friends = userService.getFriends(uid, page, size);
+        return ResponseEntity.ok(ApiResponse.<List<UserFollowResponse>>builder()
                 .code(1000)
                 .message("Friends retrieved successfully")
-                .result(friendUids)
+                .result(friends)
                 .build());
     }
 

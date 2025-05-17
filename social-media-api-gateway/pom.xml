@@ -66,17 +66,23 @@
 		<dependency>
 			<groupId>io.grpc</groupId>
 			<artifactId>grpc-netty</artifactId>
-			<version>1.45.1</version> <!-- Chọn phiên bản phù hợp với bạn -->
+			<version>1.70.0</version> <!-- Chọn phiên bản phù hợp với bạn -->
 		</dependency>
 		<dependency>
 			<groupId>io.grpc</groupId>
 			<artifactId>grpc-protobuf</artifactId>
-			<version>1.45.1</version> <!-- Chọn phiên bản phù hợp với bạn -->
+			<version>1.70.0</version> <!-- Chọn phiên bản phù hợp với bạn -->
 		</dependency>
 		<dependency>
 			<groupId>io.grpc</groupId>
 			<artifactId>grpc-stub</artifactId>
-			<version>1.45.1</version> <!-- Chọn phiên bản phù hợp với bạn -->
+			<version>1.70.0</version> <!-- Chọn phiên bản phù hợp với bạn -->
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/io.grpc/grpc-context -->
+		<dependency>
+			<groupId>io.grpc</groupId>
+			<artifactId>grpc-context</artifactId>
+			<version>1.70.0</version>
 		</dependency>
 	</dependencies>
 	<dependencyManagement>
