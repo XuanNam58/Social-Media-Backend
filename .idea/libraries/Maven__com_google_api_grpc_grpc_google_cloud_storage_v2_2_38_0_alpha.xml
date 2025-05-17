@@ -1,0 +1,14 @@
+<component name="libraryTable">
+  <library name="Maven: com.google.api.grpc:grpc-google-cloud-storage-v2:2.38.0-alpha" type="java-imported" external-system-id="Maven">
+    <properties groupId="com.google.api.grpc" artifactId="grpc-google-cloud-storage-v2" version="2.38.0-alpha" />
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/google/api/grpc/grpc-google-cloud-storage-v2/2.38.0-alpha/grpc-google-cloud-storage-v2-2.38.0-alpha.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/com/google/api/grpc/grpc-google-cloud-storage-v2/2.38.0-alpha/grpc-google-cloud-storage-v2-2.38.0-alpha-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/google/api/grpc/grpc-google-cloud-storage-v2/2.38.0-alpha/grpc-google-cloud-storage-v2-2.38.0-alpha-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
