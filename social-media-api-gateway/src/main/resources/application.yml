@@ -18,6 +18,16 @@ spring:
           predicates:
             - Path=/api/friend/**
 
+        - id: lineta-posts-interaction
+          uri: lb://lineta-posts-interaction
+          predicates:
+            - Path=/api/posts/**
+
+        - id: lineta-notification
+          uri: lb://lineta-notification
+          predicates:
+            - Path=/api/notifications/**
+
     discovery:
       locator:
         enabled: true  # T? ??ng ??nh tuy?n theo t�n service n?u mu?n
