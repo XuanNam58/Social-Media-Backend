@@ -132,6 +132,31 @@ public class UserServiceImpl implements UserService {
         return results;
     }
 
+    @Override
+    public List<String> getUsernamesByIds(List<String> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+        try {
+            // Tạo danh sách DocumentReference
+            List<DocumentReference> docRefs = ids.stream()
+                    .map(id -> firestore.collection("users").document(id))
+                    .collect(Collectors.toList());
+
+            // Lấy tất cả documents cùng lúc
+            List<DocumentSnapshot> documents = firestore.getAll(docRefs.toArray(new DocumentReference[0])).get();
+
+            return documents.stream()
+                    .filter(DocumentSnapshot::exists)
+                    .map(doc -> doc.getString("username"))
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+        } catch (InterruptedException | ExecutionException e) {
+            System.err.println("Error fetching documents: " + e.getMessage());
+            return List.of();
+        }
+    }
+
     private List<UserFollowResponse> getUsersByIdsFallback(List<String> ids) {
         // Logic hiện tại của getUsersByIds
         return ids.stream()
