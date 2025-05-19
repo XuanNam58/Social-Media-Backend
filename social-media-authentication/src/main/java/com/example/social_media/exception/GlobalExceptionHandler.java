@@ -23,7 +23,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(ApiResponse.<Void>builder()
                         .code(1401)
-                        .message("Invalid token")
+                        .message(e.getMessage())
                         .build());
     }
 

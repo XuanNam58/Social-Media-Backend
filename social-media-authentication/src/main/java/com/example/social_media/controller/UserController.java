@@ -51,18 +51,6 @@ public class UserController {
     @GetMapping("/{userId}")
     public ResponseEntity<ApiResponse<User>> getUserById(@PathVariable String userId) throws ExecutionException, InterruptedException {
         DocumentSnapshot document = firestore.collection("users").document(userId).get().get();
-
-        // Get the entire data map first
-//        Map<String, Object> data = document.getData();
-
-//        User respone = User.builder()
-//                .username(document.getString("username"))
-//                .email(document.getString("email"))
-//                .fullName(document.getString("fullName"))
-//                .profilePicURL(document.getString("profilePicURL"))
-//                .bio(document.getString("bio"))
-//                .createdAt(document.getTimestamp("createdAt"))
-//                .build();
         return ResponseEntity.ok()
                 .body(ApiResponse.<User>builder()
                         .code(1000)
@@ -112,24 +100,16 @@ public class UserController {
                 .build());
     }
 
-    @GetMapping("/follower-list")
-    public ResponseEntity<ApiResponse<List<UserFollowResponse>>> getFollowers(@RequestParam String ids) {
-        if (ids == null || ids.trim().isEmpty()) {
-            return ResponseEntity.ok(ApiResponse.<List<UserFollowResponse>>builder()
-                    .code(1000)
-                    .message("No followers retrieved")
-                    .result(List.of())
-                    .build());
-        }
-        List<String> idList = Arrays.asList(ids.split(","));
-        List<UserFollowResponse> followers = userService.getUsersByIds(idList);
-        return ResponseEntity.ok(ApiResponse.<List<UserFollowResponse>>builder()
-                .code(1000)
-                .message("Followers retrieved successfully")
-                .result(followers)
-                .build());
+    @PostMapping("/get-usernames-by-ids")
+    public ResponseEntity<List<String>> getFollowers(@RequestBody List<String> ids) {
+        List<String> usernameList = userService.getUsernamesByIds(ids);
+        return ResponseEntity.ok(usernameList);
     }
 
+//    @PostMapping hỗ trợ gửi dữ liệu trong request body, trong khi @GetMapping thường được dùng với query parameters hoặc path variables.
+//    Nếu danh sách ID dài (hàng chục hoặc hàng trăm ID), việc nhúng vào URL (query parameters) có thể:
+//    Vượt quá giới hạn độ dài URL (thường khoảng 2000 ký tự tùy trình duyệt/server).
+//    Làm URL trở nên khó đọc và khó quản lý.
     @PostMapping("/user-list")
     public ResponseEntity<List<UserFollowResponse>> getUsersByIds(@RequestBody List<String> ids) {
         List<UserFollowResponse> users = userService.getUsersByIds(ids);

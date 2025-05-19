@@ -17,4 +17,7 @@ public interface UserService {
     List<UserFollowResponse> getFollowing(String followerId, int page, int size) throws ExecutionException, InterruptedException;
     List<UserFollowResponse> getFriends(String uid, int page, int size) throws ExecutionException, InterruptedException;
     boolean isFollowing(String followerId, String followedId) throws ExecutionException, InterruptedException;
+
+    List<String> getFollowersWithUsername(String followedId) throws ExecutionException, InterruptedException;
+    List<String> getFollowingWithUsername(String followerId) throws ExecutionException, InterruptedException;
 }
