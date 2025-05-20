@@ -31,6 +31,26 @@ spring:
           predicates:
             - Path=/api/friend/**
 
+        - id: post-route
+          uri: lb://interaction-service
+          predicates:
+            - Path=/api/posts/**
+
+        - id: comment-route
+          uri: lb://interaction-service
+          predicates:
+            - Path=/api/comments/**
+
+        - id: like-route
+          uri: lb://interaction-service
+          predicates:
+            - Path=/api/likes/**
+
+        - id: notification-service
+          uri: lb://notification-service
+          predicates:
+            - Path=/api/notifications/**
+
     discovery:
       locator:
         enabled: true  # T? ??ng ??nh tuy?n theo t�n service n?u mu?n
