@@ -51,18 +51,6 @@ public class UserController {
     @GetMapping("/{userId}")
     public ResponseEntity<ApiResponse<User>> getUserById(@PathVariable String userId) throws ExecutionException, InterruptedException {
         DocumentSnapshot document = firestore.collection("users").document(userId).get().get();
-
-        // Get the entire data map first
-//        Map<String, Object> data = document.getData();
-
-//        User respone = User.builder()
-//                .username(document.getString("username"))
-//                .email(document.getString("email"))
-//                .fullName(document.getString("fullName"))
-//                .profilePicURL(document.getString("profilePicURL"))
-//                .bio(document.getString("bio"))
-//                .createdAt(document.getTimestamp("createdAt"))
-//                .build();
         return ResponseEntity.ok()
                 .body(ApiResponse.<User>builder()
                         .code(1000)
@@ -72,6 +60,7 @@ public class UserController {
 
     }
 
+    //delete
     @PostMapping("/save/{uid}")
     public ResponseEntity<?> saveUser(@RequestBody User user, @PathVariable String uid) throws ExecutionException, InterruptedException {
         userService.save(user, uid);
