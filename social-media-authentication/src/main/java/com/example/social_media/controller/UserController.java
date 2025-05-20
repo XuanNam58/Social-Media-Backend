@@ -60,6 +60,7 @@ public class UserController {
 
     }
 
+    //delete
     @PostMapping("/save/{uid}")
     public ResponseEntity<?> saveUser(@RequestBody User user, @PathVariable String uid) throws ExecutionException, InterruptedException {
         userService.save(user, uid);

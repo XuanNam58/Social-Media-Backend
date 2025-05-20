@@ -12,7 +12,6 @@ spring:
           '[/**]':
             allowedOrigins:
               - http://localhost:3000
-              - http://localhost:9000
             allowedMethods:
               - GET
               - POST
@@ -31,6 +30,26 @@ spring:
           uri: lb://friend-service
           predicates:
             - Path=/api/friend/**
+
+        - id: post-route
+          uri: lb://interaction-service
+          predicates:
+            - Path=/api/posts/**
+
+        - id: comment-route
+          uri: lb://interaction-service
+          predicates:
+            - Path=/api/comments/**
+
+        - id: like-route
+          uri: lb://interaction-service
+          predicates:
+            - Path=/api/likes/**
+
+        - id: notification-service
+          uri: lb://notification-service
+          predicates:
+            - Path=/api/notifications/**
 
     discovery:
       locator:
