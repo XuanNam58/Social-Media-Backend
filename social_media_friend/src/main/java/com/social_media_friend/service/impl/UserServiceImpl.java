@@ -36,7 +36,7 @@ public class UserServiceImpl implements UserService {
     RedisTemplate<String, Object> redisTemplate;
 //    StringRedisTemplate stringRedisTemplate;
 //    ObjectMapper objectMapper;
-    static String AUTH_SERVICE_URL = "http://localhost:8080/api/auth/users/";
+    static String AUTH_SERVICE_URL = "http://auth-service:8080/api/auth/users/";
 
     @Override
     public void followUser(String followerId, String followedId) {

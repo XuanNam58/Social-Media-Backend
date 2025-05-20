@@ -189,14 +189,6 @@ public class UserServiceImpl implements UserService {
         try {
             Long followingNum = redisTemplate.opsForValue().get(followingKey);
             Long followerNum = redisTemplate.opsForValue().get(followerKey);
-            // Ghi lại metrics cho followingKey
-//        meterRegistry.counter("redis.cache.hits", "key", followingKey).increment(followingNum != null ? 1 : 0);
-//        meterRegistry.counter("redis.cache.misses", "key", followingKey).increment(followingNum == null ? 1 : 0);
-//
-//        // Ghi lại metrics cho followerKey
-//        meterRegistry.counter("redis.cache.hits", "key", followerKey).increment(followerNum != null ? 1 : 0);
-//        meterRegistry.counter("redis.cache.misses", "key", followerKey).increment(followerNum == null ? 1 : 0);
-
 
             if ("increment".equals(operation)) {
                 redisTemplate.opsForValue().increment(followingKey);
