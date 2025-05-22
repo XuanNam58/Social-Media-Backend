@@ -24,8 +24,7 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
         ServerHttpRequest request = exchange.getRequest();
 
         String path = request.getURI().getPath();
-        System.out.println("Request path: " + path);
-        if (path.contains("signup") || path.contains("login") || path.contains("check-username")) {
+        if (path.contains("ws")||path.contains("signup") || path.contains("/login") || path.contains("check-username")) {
             return chain.filter(exchange); // chuyển request đi qua các filter tiếp theo
         }
 

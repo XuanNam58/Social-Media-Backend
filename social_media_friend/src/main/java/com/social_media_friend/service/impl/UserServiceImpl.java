@@ -1,9 +1,11 @@
 package com.social_media_friend.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.cloud.Timestamp;
 import com.google.cloud.firestore.*;
 import com.social_media_friend.dto.request.UpdateFollowCountsRequest;
+import com.social_media_friend.dto.request.UserFollowRequest;
 import com.social_media_friend.dto.response.UserFollowResponse;
 import com.social_media_friend.dto.response.UserResponse;
 import com.social_media_friend.entity.UserRelationship;
@@ -13,15 +15,16 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.*;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -34,39 +37,64 @@ public class UserServiceImpl implements UserService {
     Firestore firestore;
     RestTemplate restTemplate;
     RedisTemplate<String, Object> redisTemplate;
-//    StringRedisTemplate stringRedisTemplate;
-//    ObjectMapper objectMapper;
+    //    SimpMessagingTemplate messagingTemplate;
+    KafkaTemplate<String, String> kafkaTemplate;
+
     static String AUTH_SERVICE_URL = "http://localhost:8080/api/auth/users/";
 
     @Override
-    public void followUser(String followerId, String followedId) {
+    public void followUser(UserFollowRequest request) {
         try {
-            String relationshipId = followerId + "_" + followedId;
+            String relationshipId = request.getFollowerId() + "_" + request.getFollowedId();
             DocumentReference relationshipRef = firestore.collection("relationships").document(relationshipId);
             UserRelationship relationship = UserRelationship.builder()
                     .id(relationshipId)
-                    .followerId(followerId)
-                    .followedId(followedId)
+                    .followerId(request.getFollowerId())
+                    .followedId(request.getFollowedId())
                     .followAt(Timestamp.now())
                     .build();
             relationshipRef.set(relationship);
 
-            updateAuthServiceUser(followerId, followedId, "increment");
+            updateAuthServiceUser(request.getFollowerId(), request.getFollowedId(), "increment");
 
            /* Invalidate cache
             xóa đi danh sách khi có người follow mới
             */
-            deleteKeysByPattern("user:followers:" + followedId + ":*");
-            deleteKeysByPattern("user:following:" + followerId + ":*");
-            deleteKeysByPattern("user:friends:" + followerId + ":*");
-            deleteKeysByPattern("user:friends:" + followedId + ":*");
+            deleteKeysByPattern("user:followers:" + request.getFollowedId() + ":*");
+            deleteKeysByPattern("user:following:" + request.getFollowerId() + ":*");
+            deleteKeysByPattern("user:friends:" + request.getFollowerId() + ":*");
+            deleteKeysByPattern("user:friends:" + request.getFollowedId() + ":*");
 
-//            stringRedisTemplate.convertAndSend("follow-events",
-//                    "\"followerId\":\"" + followerId + "\",\"followedId\":\"" + followedId + "\"}");
+            String reverseRelationshipId = request.getFollowedId() + "_" + request.getFollowerId();
+            DocumentSnapshot reverseDoc = firestore.collection("relationships").document(reverseRelationshipId).get().get();
+
+            Map<String, Object> message = new HashMap<>();
+            message.put("senderUsername", request.getFollowerUsername());
+            message.put("followReceiver", request.getFollowedUsername());
+            message.put("type", "follow");
+            message.put("isRead", false);
+            message.put("postId", null);
+            if (reverseDoc.exists()) {
+                message.put("content", request.getFollowerFullname() + " started following you. "
+                + "You and " + request.getFollowerFullname() + " are now friends");
+            } else {
+                message.put("content", request.getFollowerFullname() + " started following you");
+            }
+
+            ObjectMapper mapper = new ObjectMapper();
+            kafkaTemplate.send("post-notifications", mapper.writeValueAsString(message));
+
         } catch (RestClientException e) {
             throw new RuntimeException("Failed to communicate with auth service", e);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e.getMessage());
+        } catch (ExecutionException e) {
+            throw new RuntimeException(e.getMessage());
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e.getMessage());
         }
     }
+
 
     @Override
     public void unFollowUser(String followerId, String followedId) {
@@ -222,7 +250,8 @@ public class UserServiceImpl implements UserService {
                 AUTH_SERVICE_URL + "user-list",
                 HttpMethod.POST,
                 request,
-                new ParameterizedTypeReference<List<UserFollowResponse>>() {}
+                new ParameterizedTypeReference<List<UserFollowResponse>>() {
+                }
         );
         return response.getBody() != null ? response.getBody() : List.of();
     }
@@ -233,6 +262,52 @@ public class UserServiceImpl implements UserService {
         DocumentReference relationshipRef = firestore.collection("relationships").document(relationshipId);
         DocumentSnapshot document = relationshipRef.get().get();
         return document.exists();
+    }
+
+    @Override
+    public List<String> getFollowersWithUsername(String followedId) throws ExecutionException, InterruptedException {
+        Query query = firestore.collection("relationships")
+                .whereEqualTo("followedId", followedId);
+        List<QueryDocumentSnapshot> documents = query.get().get().getDocuments();
+        List<String> followerIds = documents.stream()
+                .map(doc -> doc.getString("followerId"))
+                .collect(Collectors.toList());
+
+        if (followerIds.isEmpty()) {
+            return List.of();
+        }
+
+        List<String> followers = getUsernameList(followerIds);
+        return followers;
+    }
+
+    @Override
+    public List<String> getFollowingWithUsername(String followerId) throws ExecutionException, InterruptedException {
+        Query query = firestore.collection("relationships")
+                .whereEqualTo("followerId", followerId);
+        List<QueryDocumentSnapshot> documents = query.get().get().getDocuments();
+        List<String> followedIds = documents.stream()
+                .map(doc -> doc.getString("followedId"))
+                .collect(Collectors.toList());
+
+        if (followedIds.isEmpty()) {
+            return List.of();
+        }
+
+        List<String> following = getUsernameList(followedIds);
+        return following;
+    }
+
+    private List<String> getUsernameList(List<String> ids) {
+        HttpEntity<List<String>> request = new HttpEntity<>(ids);
+        ResponseEntity<List<String>> response = restTemplate.exchange(
+                AUTH_SERVICE_URL + "get-usernames-by-ids",
+                HttpMethod.POST,
+                request,
+                new ParameterizedTypeReference<List<String>>() {
+                }
+        );
+        return response.getBody() != null ? response.getBody() : List.of();
     }
 
 

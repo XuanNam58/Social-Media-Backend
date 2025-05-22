@@ -46,6 +46,7 @@ public class AuthServiceImpl implements AuthService {
                 .postNum(0L)
                 .followerNum(0L)
                 .followingNum(0L)
+                .build()
         );
 
         return UserSignupResponse.builder()

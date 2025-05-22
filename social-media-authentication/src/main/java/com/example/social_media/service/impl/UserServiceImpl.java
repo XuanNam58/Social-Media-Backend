@@ -132,6 +132,31 @@ public class UserServiceImpl implements UserService {
         return results;
     }
 
+    @Override
+    public List<String> getUsernamesByIds(List<String> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+        try {
+            // Tạo danh sách DocumentReference
+            List<DocumentReference> docRefs = ids.stream()
+                    .map(id -> firestore.collection("users").document(id))
+                    .collect(Collectors.toList());
+
+            // Lấy tất cả documents cùng lúc
+            List<DocumentSnapshot> documents = firestore.getAll(docRefs.toArray(new DocumentReference[0])).get();
+
+            return documents.stream()
+                    .filter(DocumentSnapshot::exists)
+                    .map(doc -> doc.getString("username"))
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+        } catch (InterruptedException | ExecutionException e) {
+            System.err.println("Error fetching documents: " + e.getMessage());
+            return List.of();
+        }
+    }
+
     private List<UserFollowResponse> getUsersByIdsFallback(List<String> ids) {
         // Logic hiện tại của getUsersByIds
         return ids.stream()
@@ -164,14 +189,6 @@ public class UserServiceImpl implements UserService {
         try {
             Long followingNum = redisTemplate.opsForValue().get(followingKey);
             Long followerNum = redisTemplate.opsForValue().get(followerKey);
-            // Ghi lại metrics cho followingKey
-//        meterRegistry.counter("redis.cache.hits", "key", followingKey).increment(followingNum != null ? 1 : 0);
-//        meterRegistry.counter("redis.cache.misses", "key", followingKey).increment(followingNum == null ? 1 : 0);
-//
-//        // Ghi lại metrics cho followerKey
-//        meterRegistry.counter("redis.cache.hits", "key", followerKey).increment(followerNum != null ? 1 : 0);
-//        meterRegistry.counter("redis.cache.misses", "key", followerKey).increment(followerNum == null ? 1 : 0);
-
 
             if ("increment".equals(operation)) {
                 redisTemplate.opsForValue().increment(followingKey);
@@ -191,6 +208,35 @@ public class UserServiceImpl implements UserService {
             updateFirestoreDirectly(followerId, followedId, operation);
         }
 
+    }
+
+    @Override
+    public void updateUser(String uid, String type, String content) {
+        // Validate inputs
+        if (uid == null || uid.isEmpty()) {
+            throw new IllegalArgumentException("User ID cannot be null or empty");
+        }
+        if (type == null || type.isEmpty()) {
+            throw new IllegalArgumentException("Type cannot be null or empty");
+        }
+        if (content == null) {
+            throw new IllegalArgumentException("Content cannot be null");
+        }
+
+        DocumentReference userDoc = firestore.collection("users").document(uid);
+        switch (type) {
+            case "fullName":
+                userDoc.update("fullName", content);
+                break;
+            case "profilePicURL":
+                userDoc.update("profilePicURL", content);
+                break;
+            case "bio":
+                userDoc.update("bio", content);
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid type: " + type);
+        }
     }
 
     private void updateFirestoreDirectly(String followerId, String followedId, String operation) throws ExecutionException, InterruptedException {
