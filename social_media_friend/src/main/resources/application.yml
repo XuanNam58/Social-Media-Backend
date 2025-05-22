@@ -6,7 +6,7 @@ spring:
     name: friend-service
   data:
     redis:
-      host: redis
+      host: localhost
       port: 6379
       # password: your-redis-password # Bỏ nếu không dùng mật khẩu
       timeout: 2000
@@ -17,16 +17,10 @@ spring:
           min-idle: 5
           max-wait: 1000
 
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: https://securetoken.google.com/social-media-1c233
-
 eureka:
   client:
     service-url:
-      defaultZone: http://discovery-server:8761/eureka
+      defaultZone: http://localhost:8761/eureka
 #logging:
 #  level:
 #    org.springframework: DEBUG

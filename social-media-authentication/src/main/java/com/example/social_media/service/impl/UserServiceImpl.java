@@ -210,6 +210,35 @@ public class UserServiceImpl implements UserService {
 
     }
 
+    @Override
+    public void updateUser(String uid, String type, String content) {
+        // Validate inputs
+        if (uid == null || uid.isEmpty()) {
+            throw new IllegalArgumentException("User ID cannot be null or empty");
+        }
+        if (type == null || type.isEmpty()) {
+            throw new IllegalArgumentException("Type cannot be null or empty");
+        }
+        if (content == null) {
+            throw new IllegalArgumentException("Content cannot be null");
+        }
+
+        DocumentReference userDoc = firestore.collection("users").document(uid);
+        switch (type) {
+            case "fullName":
+                userDoc.update("fullName", content);
+                break;
+            case "profilePicURL":
+                userDoc.update("profilePicURL", content);
+                break;
+            case "bio":
+                userDoc.update("bio", content);
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid type: " + type);
+        }
+    }
+
     private void updateFirestoreDirectly(String followerId, String followedId, String operation) throws ExecutionException, InterruptedException {
         DocumentReference followerDoc = firestore.collection("users").document(followerId);
         DocumentReference followedDoc = firestore.collection("users").document(followedId);
