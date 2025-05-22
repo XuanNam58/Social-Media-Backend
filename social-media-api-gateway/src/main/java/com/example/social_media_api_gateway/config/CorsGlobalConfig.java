@@ -5,7 +5,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsWebFilter;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
-
+//Spring Cloud Gateway không tự động kích hoạt cấu hình globalcors trong YAML nếu bạn không có một CorsWebFilter
+// hoặc WebFluxConfigurer để kích hoạt xử lý CORS.
 @Configuration
 public class CorsGlobalConfig {
     @Bean
@@ -22,4 +23,3 @@ public class CorsGlobalConfig {
         return new CorsWebFilter(source);
     }
 }
-
