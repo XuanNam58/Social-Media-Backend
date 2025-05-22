@@ -18,5 +18,6 @@ public interface UserService {
     List<UserDTO> getUsersByUsernames(Set<String> usernames) throws ExecutionException, InterruptedException;
     String getUidByUsername(String username) throws ExecutionException, InterruptedException;
     List<UserFollowResponse> getUsersByIds(List<String> ids);
+    List<String> getUsernamesByIds(List<String> ids);
     void updateFollowCounts(String followerId, String followedId, String operation) throws ExecutionException, InterruptedException;
 }

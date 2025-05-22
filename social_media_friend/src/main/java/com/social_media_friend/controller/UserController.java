@@ -81,4 +81,25 @@ public class UserController {
                 .build());
     }
 
+    //    ---------------------------------------------------------------------
+    @GetMapping("/followers-with-username/{followedId}")
+    public ResponseEntity<ApiResponse<List<String>>> getFollowerWithUsername(@PathVariable String followedId) throws ExecutionException, InterruptedException {
+        List<String> followers = userService.getFollowersWithUsername(followedId);
+        return ResponseEntity.ok(ApiResponse.<List<String>>builder()
+                .code(1000)
+                .message("Followers retrieved successfully")
+                .result(followers)
+                .build());
+    }
+
+    @GetMapping("/following-with-username/{followerId}")
+    public ResponseEntity<ApiResponse<List<String>>> getFollowingWithUsername(@PathVariable String followerId) throws ExecutionException, InterruptedException {
+        List<String> following = userService.getFollowingWithUsername(followerId);
+        return ResponseEntity.ok(ApiResponse.<List<String>>builder()
+                .code(1000)
+                .message("Followers retrieved successfully")
+                .result(following)
+                .build());
+    }
+
 }

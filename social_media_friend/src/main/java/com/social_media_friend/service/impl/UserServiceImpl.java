@@ -235,6 +235,51 @@ public class UserServiceImpl implements UserService {
         return document.exists();
     }
 
+    @Override
+    public List<String> getFollowersWithUsername(String followedId) throws ExecutionException, InterruptedException {
+        Query query = firestore.collection("relationships")
+                .whereEqualTo("followedId", followedId);
+        List<QueryDocumentSnapshot> documents = query.get().get().getDocuments();
+        List<String> followerIds = documents.stream()
+                .map(doc -> doc.getString("followerId"))
+                .collect(Collectors.toList());
+
+        if (followerIds.isEmpty()) {
+            return List.of();
+        }
+
+        List<String> followers = getUsernameList(followerIds);
+        return followers;
+    }
+
+    @Override
+    public List<String> getFollowingWithUsername(String followerId) throws ExecutionException, InterruptedException {
+        Query query = firestore.collection("relationships")
+                .whereEqualTo("followerId", followerId);
+        List<QueryDocumentSnapshot> documents = query.get().get().getDocuments();
+        List<String> followedIds = documents.stream()
+                .map(doc -> doc.getString("followedId"))
+                .collect(Collectors.toList());
+
+        if (followedIds.isEmpty()) {
+            return List.of();
+        }
+
+        List<String> following = getUsernameList(followedIds);
+        return following;
+    }
+
+    private List<String> getUsernameList(List<String> ids) {
+        HttpEntity<List<String>> request = new HttpEntity<>(ids);
+        ResponseEntity<List<String>> response = restTemplate.exchange(
+                AUTH_SERVICE_URL + "get-usernames-by-ids",
+                HttpMethod.POST,
+                request,
+                new ParameterizedTypeReference<List<String>>() {}
+        );
+        return response.getBody() != null ? response.getBody() : List.of();
+    }
+
 
     private HttpHeaders createHeaders(String token) {
         HttpHeaders headers = new HttpHeaders();
