@@ -107,7 +107,7 @@ public class UserController {
         return ResponseEntity.ok(usernameList);
     }
 
-//    @PostMapping hỗ trợ gửi dữ liệu trong request body, trong khi @GetMapping thường được dùng với query parameters hoặc path variables.
+    //    @PostMapping hỗ trợ gửi dữ liệu trong request body, trong khi @GetMapping thường được dùng với query parameters hoặc path variables.
 //    Nếu danh sách ID dài (hàng chục hoặc hàng trăm ID), việc nhúng vào URL (query parameters) có thể:
 //    Vượt quá giới hạn độ dài URL (thường khoảng 2000 ký tự tùy trình duyệt/server).
 //    Làm URL trở nên khó đọc và khó quản lý.
@@ -136,4 +136,14 @@ public class UserController {
         }
     }
 
+    @PutMapping("/update-user/{uid}")
+    public ResponseEntity<ApiResponse<Void>> updateUser(@PathVariable("uid") String uid,
+                                                        @RequestParam("type") String type,
+                                                        @RequestParam("content") String content) {
+        userService.updateUser(uid, type, content);
+        return ResponseEntity.ok(ApiResponse.<Void>builder()
+                .code(1000)
+                .message("Update user successfully")
+                .build());
+    }
 }

@@ -2,6 +2,7 @@ package com.social_media_friend.controller;
 
 
 import com.google.firebase.auth.FirebaseAuthException;
+import com.social_media_friend.dto.request.UserFollowRequest;
 import com.social_media_friend.dto.response.ApiResponse;
 import com.social_media_friend.dto.response.UserFollowResponse;
 import com.social_media_friend.service.UserService;
@@ -23,8 +24,8 @@ public class UserController {
     UserService userService;
 
     @PostMapping("/follow")
-    public ResponseEntity<ApiResponse<Void>> follow(@RequestBody Map<String, String> request) {
-        userService.followUser(request.get("followerId"), request.get("followedId"));
+    public ResponseEntity<ApiResponse<Void>> follow(@RequestBody UserFollowRequest request) {
+        userService.followUser(request);
         return ResponseEntity.ok().body(ApiResponse.<Void>builder()
                 .code(1000)
                 .message("Follow successfully")
