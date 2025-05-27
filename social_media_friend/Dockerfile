@@ -12,12 +12,13 @@ RUN mvn package -DskipTests
 
 # ---- Stage 2: Run the application ----
 # Start with Amazon Corretto JDK 17
-FROM amazoncorretto:17.0.15
+FROM amazoncorretto:17.0.15-alpine
 
 # Set working folder to App and copy compiled file from above step
 WORKDIR /app
 # copy file jar ở stage 1 và đổi tên thành app.jar sau đó bỏ vào /app
 COPY --from=build /app/target/*.jar app.jar
+COPY firebase/serviceAccountKey.json serviceAccountKey.json
 
 # Command to run the application
 ENTRYPOINT ["java", "-jar", "app.jar"]

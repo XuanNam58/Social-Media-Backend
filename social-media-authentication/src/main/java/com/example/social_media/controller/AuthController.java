@@ -42,29 +42,15 @@ public class AuthController {
         return ResponseEntity
                 .ok()
                 .body(ApiResponse.<UserLoginResponse>
-                        builder()
+                                builder()
                         .code(1000)
                         .message("Login successfully")
                         .result(authService.login(token))
                         .build());
     }
 
-
     @GetMapping("/check-username")
     public ResponseEntity<ApiResponse<Boolean>> checkUsername(@RequestParam String username) throws ExecutionException, InterruptedException {
-//        try {
-//            boolean exists = userService.isUsernameExists(username);
-//            if (exists) {
-//                return ResponseEntity.ok()
-//                        .body(Map.of("message", "Username existed", "exists", true));
-//            } else {
-//                return ResponseEntity.ok()
-//                        .body(Map.of("message", "Username available", "exists", false));
-//            }
-//        } catch (ExecutionException | InterruptedException e) {
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-//                    .body(Map.of("error", "Error checking username"));
-//        }
         boolean exists = userService.isUsernameExists(username);
         return ResponseEntity.ok(ApiResponse.<Boolean>builder()
                 .code(1000)
@@ -72,5 +58,4 @@ public class AuthController {
                 .result(exists)
                 .build());
     }
-
 }

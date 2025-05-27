@@ -33,4 +33,4 @@ build/
 .vscode/
 
 ## others
-/src/main/resources/serviceAccountKey.json
+/firebase/serviceAccountKey.json
