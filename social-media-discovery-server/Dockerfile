@@ -12,7 +12,7 @@ RUN mvn package -DskipTests
 
 # ---- Stage 2: Run the application ----
 # Start with Amazon Corretto JDK 17
-FROM amazoncorretto:17.0.15
+FROM amazoncorretto:17.0.15-alpine
 
 # Set working folder to App and copy compiled file from above step
 WORKDIR /app
