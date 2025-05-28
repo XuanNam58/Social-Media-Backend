@@ -41,6 +41,7 @@ cloudinary:
   api-key: "437197883379755"
   api-secret: "HV7alb6Clh4OJJXIoqKy4eWxF40"
 
+
 firebase:
   service-account-path: /app/serviceAccountKey.json
 

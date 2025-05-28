@@ -6,7 +6,7 @@ spring:
     name: friend-service
   data:
     redis:
-      host: localhost
+      host: redis
       port: 6379
       # password: your-redis-password # Bỏ nếu không dùng mật khẩu
       timeout: 2000
@@ -16,11 +16,16 @@ spring:
           max-idle: 10
           min-idle: 5
           max-wait: 1000
+  kafka:
+    bootstrap-servers: kafka:9092
 
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka
+      defaultZone: http://discovery-server:8761/eureka
+
+firebase:
+  service-account-path: /app/serviceAccountKey.json
 #logging:
 #  level:
 #    org.springframework: DEBUG

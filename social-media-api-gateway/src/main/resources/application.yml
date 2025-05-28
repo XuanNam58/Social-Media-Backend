@@ -1,5 +1,6 @@
 server:
   port: 9191
+  address: 0.0.0.0
 
 spring:
   application:
@@ -58,4 +59,7 @@ spring:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka
+      defaultZone: http://discovery-server:8761/eureka
+
+firebase:
+  service-account-path: /app/serviceAccountKey.json
