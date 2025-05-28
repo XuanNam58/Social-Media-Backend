@@ -20,10 +20,13 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(value = FirebaseAuthException.class)
     public ResponseEntity<ApiResponse<Void>> handleFirebaseAuth(FirebaseAuthException e) {
+        String message = e.getMessage();
+        if (message.contains("invalid-credential"))
+            message = "Incorrect email or password. Please try again";
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(ApiResponse.<Void>builder()
                         .code(1401)
-                        .message(e.getMessage())
+                        .message(message)
                         .build());
     }
 

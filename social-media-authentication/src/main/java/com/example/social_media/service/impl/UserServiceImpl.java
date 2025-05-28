@@ -1,5 +1,6 @@
 package com.example.social_media.service.impl;
 
+import com.cloudinary.Cloudinary;
 import com.example.social_media.dto.information.UserDTO;
 import com.example.social_media.dto.request.UpdateFollowCountsRequest;
 import com.example.social_media.dto.response.UserFollowResponse;
@@ -14,8 +15,10 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.PreDestroy;
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
@@ -24,6 +27,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Service
 public class UserServiceImpl implements UserService {
+    Cloudinary cloudinary;
     Firestore firestore;
     UserRepository userRepository;
     RedisTemplate<String, Long> redisTemplate;
@@ -211,6 +215,20 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public void updateUserProfilePic(String uid, MultipartFile file) throws IOException {
+        // Tải ảnh lên Cloudinary
+        Map uploadResult = cloudinary.uploader().upload(file.getBytes(),
+                Map.of("folder", "profile_pics")); // Lưu ảnh vào thư mục profile_pics
+
+        // Lấy URL
+        String imageUrl = uploadResult.get("secure_url").toString();
+
+        // Gọi updateUser để lưu URL vào Firestore
+        updateUser(uid, "profilePicURL", imageUrl);
+    }
+
+
+    @Override
     public void updateUser(String uid, String type, String content) {
         // Validate inputs
         if (uid == null || uid.isEmpty()) {
@@ -238,6 +256,7 @@ public class UserServiceImpl implements UserService {
                 throw new IllegalArgumentException("Invalid type: " + type);
         }
     }
+
 
     private void updateFirestoreDirectly(String followerId, String followedId, String operation) throws ExecutionException, InterruptedException {
         DocumentReference followerDoc = firestore.collection("users").document(followerId);
