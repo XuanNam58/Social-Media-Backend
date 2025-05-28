@@ -34,7 +34,13 @@ server:
 eureka:
   client:
     service-url:
-      defaultZone: http://discovery-server:8761/eureka
+      defaultZone: http://localhost:8761/eureka
+
+cloudinary:
+  cloud-name: "dacaq64o6"
+  api-key: "437197883379755"
+  api-secret: "HV7alb6Clh4OJJXIoqKy4eWxF40"
+
 
 firebase:
   service-account-path: /app/serviceAccountKey.json

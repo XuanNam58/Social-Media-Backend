@@ -17,7 +17,9 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -137,10 +139,34 @@ public class UserController {
     }
 
     @PutMapping("/update-user/{uid}")
-    public ResponseEntity<ApiResponse<Void>> updateUser(@PathVariable("uid") String uid,
-                                                        @RequestParam("type") String type,
-                                                        @RequestParam("content") String content) {
-        userService.updateUser(uid, type, content);
+    public ResponseEntity<ApiResponse<Void>> updateUser(
+            @PathVariable("uid") String uid,
+            @RequestParam(value = "bio", required = false) String bio,
+            @RequestParam(value = "fullName", required = false) String fullName,
+            @RequestParam(value = "file", required = false) MultipartFile file) throws IOException {
+
+        // Kiểm tra nếu không có bio, fullName, và file
+        if ((bio == null || bio.isEmpty()) &&
+                (fullName == null || fullName.isEmpty()) &&
+                (file == null || file.isEmpty())) {
+            throw new IllegalArgumentException("At least one of bio, fullName, or file must be provided");
+        }
+
+        // Cập nhật bio nếu có
+        if (bio != null && !bio.isEmpty()) {
+            userService.updateUser(uid, "bio", bio);
+        }
+
+        // Cập nhật fullName nếu có
+        if (fullName != null && !fullName.isEmpty()) {
+            userService.updateUser(uid, "fullName", fullName);
+        }
+
+        // Cập nhật avatar nếu có file
+        if (file != null && !file.isEmpty()) {
+            userService.updateUserProfilePic(uid, file);
+        }
+
         return ResponseEntity.ok(ApiResponse.<Void>builder()
                 .code(1000)
                 .message("Update user successfully")
