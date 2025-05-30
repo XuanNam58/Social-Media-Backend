@@ -40,7 +40,7 @@ public class UserServiceImpl implements UserService {
     //    SimpMessagingTemplate messagingTemplate;
     KafkaTemplate<String, String> kafkaTemplate;
 
-    static String AUTH_SERVICE_URL = "http://auth-service:8080/api/auth/users/";
+    static String AUTH_SERVICE_URL = "http://localhost:8080/api/auth/users/";
 
     @Override
     public void followUser(UserFollowRequest request) {

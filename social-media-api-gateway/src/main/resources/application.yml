@@ -59,7 +59,7 @@ spring:
 eureka:
   client:
     service-url:
-      defaultZone: http://discovery-server:8761/eureka
+      defaultZone: http://localhost:8761/eureka
 
 firebase:
-  service-account-path: /app/serviceAccountKey.json
+  service-account-path: firebase/serviceAccountKey.json
