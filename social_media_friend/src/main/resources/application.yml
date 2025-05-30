@@ -17,15 +17,15 @@ spring:
           min-idle: 5
           max-wait: 1000
   kafka:
-    bootstrap-servers: kafka:9092
+    bootstrap-servers: localhost:9092
 
 eureka:
   client:
     service-url:
-      defaultZone: http://discovery-server:8761/eureka
+      defaultZone: http://localhost:8761/eureka
 
 firebase:
-  service-account-path: /app/serviceAccountKey.json
+  service-account-path: firebase/serviceAccountKey.json
 #logging:
 #  level:
 #    org.springframework: DEBUG
