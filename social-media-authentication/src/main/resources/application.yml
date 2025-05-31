@@ -12,7 +12,7 @@ spring:
           min-idle: 5
           max-wait: 1000
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: kafka:9092
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
@@ -34,7 +34,7 @@ server:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka
+      defaultZone: http://discovery-server:8761/eureka
 
 cloudinary:
   cloud-name: "dacaq64o6"
@@ -43,5 +43,5 @@ cloudinary:
 
 
 firebase:
-  service-account-path: firebase/serviceAccountKey.json
+  service-account-path: /app/serviceAccountKey.json
 
