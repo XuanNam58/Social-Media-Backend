@@ -1,0 +1,32 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: friend-service
+  data:
+    redis:
+      host: redis
+      port: 6379
+      # password: your-redis-password # Bỏ nếu không dùng mật khẩu
+      timeout: 2000
+      lettuce:
+        pool:
+          max-active: 20
+          max-idle: 10
+          min-idle: 5
+          max-wait: 1000
+  kafka:
+    bootstrap-servers: kafka:9092
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://discovery-server:8761/eureka
+
+firebase:
+  service-account-path: /app/serviceAccountKey.json
+#logging:
+#  level:
+#    org.springframework: DEBUG
+#    com.netflix.discovery: DEBUG
