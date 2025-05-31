@@ -34,4 +34,3 @@ build/
 
 ## others
 /firebase/serviceAccountKey.json
-src/main/resources/serviceAccountKey.json
