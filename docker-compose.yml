@@ -52,6 +52,34 @@ services:
     networks:
       - lineta-network
 
+  notification-service:
+      image: xuannam01/notification-service:0.0.1
+      container_name: notification-service
+      ports:
+        - "9001:9001"
+      #    volumes:
+      #      - ./friend-service/firebase/serviceAccountKey.json:/app/serviceAccountKey.json
+      depends_on:
+        - discovery-server
+      environment:
+        - SPRING_PROFILES_ACTIVE=docker
+      networks:
+        - lineta-network
+
+  message-service:
+    image: xuannam01/message-service:0.0.1
+    container_name: message-service
+    ports:
+      - "4000:4000"
+    #    volumes:
+    #      - ./friend-service/firebase/serviceAccountKey.json:/app/serviceAccountKey.json
+    depends_on:
+      - discovery-server
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    networks:
+      - lineta-network
+
   api-gateway:
     image: xuannam01/api-gateway:0.0.1
     container_name: api-gateway
@@ -63,6 +91,7 @@ services:
       - discovery-server
       - auth-service
       - friend-service
+      - notification-service
     environment:
       - SPRING_PROFILES_ACTIVE=docker
     networks:
