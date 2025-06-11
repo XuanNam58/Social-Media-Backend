@@ -39,6 +39,7 @@ public class AuthServiceImpl implements AuthService {
 
         firestore.collection("users").document(uid).set(User.builder()
                 .uid(uid)
+                .profilePicURL("https://scontent.fsgn5-12.fna.fbcdn.net/v/t1.30497-1/453178253_471506465671661_2781666950760530985_n.png?stp=dst-png_s200x200&_nc_cat=1&ccb=1-7&_nc_sid=136b72&_nc_ohc=OfOrodOyUDIQ7kNvwGtYZRk&_nc_oc=AdmQI9yxuMfv6FIuWNA9oazcodN5xE_EyBhO4Atkbwxq-8vWzthP_g0JE-vnSHiqKxE&_nc_pt=1&_nc_zt=24&_nc_ht=scontent.fsgn5-12.fna&oh=00_AfIH7l5VJ0wqjV_QFTG4pw7ok9nvljg4kYdN8PiHIXbaWA&oe=686288FA")
                 .username(userSignupReq.getUsername())
                 .fullName(userSignupReq.getFullName())
                 .email(userSignupReq.getEmail())
