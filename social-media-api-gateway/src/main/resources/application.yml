@@ -57,7 +57,6 @@ spring:
           predicates:
             - Path=/api/message/**
 
-
     discovery:
       locator:
         enabled: true  # T? ??ng ??nh tuy?n theo t�n service n?u mu?n
@@ -65,7 +64,7 @@ spring:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka
+      defaultZone: http://discovery-server:8761/eureka
 
 firebase:
-  service-account-path: firebase/serviceAccountKey.json
+  service-account-path: /app/serviceAccountKey.json
